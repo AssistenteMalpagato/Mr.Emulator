@@ -19,22 +19,53 @@ export interface SystemDef {
   color: string
   phase: 1 | 2 | 3
   cost: CoreCost
+  /** retroarch (predefinito) oppure mame: emulatore autonomo avviato come programma a parte */
+  engine?: 'retroarch' | 'mame'
+  /** Da dove ricavare i titoli completi dei giochi con nome breve (fbneo = elenco FBNeo, mame = elenco del MAME dell'utente) */
+  titleSource?: 'fbneo' | 'mame'
   /** Nome della cartella su libretro-thumbnails (copertine). Assente = non ancora supportato */
   thumbs?: string
   /** I file hanno nomi brevi (es. pbobblen.zip): il titolo si ricava dal DAT di FBNeo */
   titleDat?: boolean
+  /** Software List di MAME da cui ricavare i titoli dei file con nome breve (console FBNeo) */
+  softlist?: string[]
+}
+
+export interface DiagnosticCheck {
+  level: 'ok' | 'warn' | 'bad'
+  title: string
+  detail: string
+  /** Cosa fare per risolvere */
+  fix: string
+}
+
+export interface DiagnosticReport {
+  checks: DiagnosticCheck[]
+  /** Testo completo, da copiare e mandare */
+  text: string
+  problems: number
+  warnings: number
 }
 
 export interface SystemInfo extends SystemDef {
   gameCount: number
+  /** Nascosto dalla griglia della home (scelta dell'utente) */
+  hidden?: boolean
 }
 
 export interface Game {
   id: string
   name: string
   fileName: string
+  /** Percorso relativo alla cartella del sistema */
   path: string
   systemId: string
+  /** MAME: nome breve della macchina da avviare (per le varianti è diverso dal nome dello ZIP) */
+  machine?: string
+  /** Famiglia per filtrare la lista (MAME: Neo Geo, Capcom CPS, Sega…) */
+  group?: string
+  /** Anno di uscita, se noto (MAME) */
+  year?: string
   demo?: boolean
 }
 
@@ -62,6 +93,43 @@ export interface Settings {
   dedicatedGpu: boolean
   inputScheme: InputScheme
   arcadeLayout: ArcadeLayout
+  /** Arcade/Neo Geo: mostra anche i giochi che il motore FBNeo non supporta (set MAME completi) */
+  showUnsupported: boolean
+  /** MAME autonomo (mame.exe), usato dal sistema "Arcade (MAME)" */
+  mamePath: string
+  /** Cartella dei dischi CHD (facoltativa): si aggiunge a quella delle ROM */
+  mameChdDir: string
+  /** Nasconde dalla lista i giochi che il controllo ROM ha trovato difettosi */
+  hideBadRoms: boolean
+  /** Per i giochi che sono partiti solo con un profilo prudente: livello del profilo (0 = completo) */
+  launchFix: Record<string, number>
+  /** Se più giochi hanno richiesto un profilo prudente, tutti partono almeno da questo livello (evita i tentativi falliti) */
+  launchFloor: number
+  /** Cartella con le immagini locali (pacchetti Multimedia / EXTRAs): schermate, copertine, titoli col nome breve del gioco */
+  mediaDir: string
+  /** Cartella con i DAT (FinalBurn Neo, Kawaks, MAME…): nome breve -> titolo, hanno la precedenza */
+  datDir: string
+  /** Sistemi nascosti nella griglia della home */
+  hiddenSystems: string[]
+  /** Filmato della partita dietro la lista (da videosnaps) */
+  videoPreview: boolean
+  /** Volume del lettore di musica (colonna sonora) */
+  musicVolume: number
+  /** Cartella dei giochi di MAME (vuota = "mame" dentro la cartella ROM). Di solito una cartella per versione, es. mame0229 */
+  mameRomDir: string
+  /** Giochi preferiti (identificativi) */
+  /** Suoni dell'interfaccia (sintetizzati dal programma) */
+  soundOn: boolean
+  soundVolume: number
+  /** Dopo quanti secondi senza input parte la rotazione di copertine (0 = mai) */
+  attractSeconds: number
+  /** Breve sequenza "INSERT COIN" prima di avviare un gioco */
+  launchAnimation: boolean
+  favorites: string[]
+  /** Ultimi giochi avviati, il più recente per primo */
+  recents: string[]
+  /** Mostra anche le varianti (cloni) dei giochi: con i set "merged" stanno dentro lo ZIP del gioco principale */
+  mameClones: boolean
 }
 
 /** laptop = tastiera del portatile (WASD + J/K/L); cabinet = pannello arcade con encoder tipo I-PAC */
@@ -159,13 +227,109 @@ export interface LaunchResult {
   error?: string
 }
 
+/** Stato della scansione della libreria, che avviene in background */
+export interface LibraryEvent {
+  scanning: boolean
+  /** Sistema in scansione in questo momento */
+  systemId: string | null
+  /** File trovati finora nel sistema in scansione */
+  found: number
+  /** Sistema appena aggiornato (la sua lista è cambiata), se c'è */
+  updated: string | null
+  /** Cartella dei giochi non raggiungibile (per esempio disco esterno scollegato): le liste restano quelle salvate */
+  offline: string | null
+}
+
+/** Cosa ha trovato la scansione di MAME nella cartella dei giochi (serve a spiegare perché la lista è vuota) */
+export interface LibraryStats {
+  /** ZIP trovati in totale */
+  total: number
+  /** Giochi mostrati in lista */
+  shown: number
+  /** ZIP di BIOS e dispositivi (non sono giochi) */
+  bios: number
+  device: number
+  /** ZIP che questo MAME non conosce (di solito: set di un'altra versione) */
+  unknown: number
+  version: string
+}
+
 export type ArtKind = 'boxart' | 'snap' | 'title'
 
 export type PickKind = 'dir' | 'file'
 
+export interface VerifyIssue {
+  set: string
+  file: string
+  reason: string
+}
+export interface VerifyBad {
+  name: string
+  parent: string
+  issues: VerifyIssue[]
+}
+export interface VerifySummary {
+  at: number
+  version: string
+  checked: number
+  good: number
+  badCount: number
+  cancelled: boolean
+}
+export interface VerifyState {
+  running: boolean
+  checked: number
+  bad: number
+  summary: VerifySummary | null
+  badList: VerifyBad[]
+  tail: string[]
+}
+
+export interface MediaReport {
+  base: string
+  found: Array<{ kind: 'boxart' | 'snap' | 'title' | 'video' | 'sound'; name: string; path: string; type: 'dir' | 'zip'; count: number }>
+  other: string[]
+  unsupported: string[]
+  error?: string
+}
+
+export interface MediaTrack {
+  title: string
+  url: string
+}
+
 export interface MrApi {
+  /** Testo completo dell'ultimo errore di MAME (per copiarlo) */
+  getLastMameLog(): Promise<string>
+  /** Filmato della partita del gioco (indirizzo da usare in un video), se esiste */
+  getVideo(game: Game): Promise<string | null>
+  /** Brani della colonna sonora del gioco */
+  getTracks(game: Game): Promise<MediaTrack[]>
+  startVerify(): Promise<{ ok: boolean; error?: string }>
+  cancelVerify(): Promise<void>
+  getVerify(): Promise<VerifyState>
+  /** Controlla un solo gioco (pochi secondi) */
+  verifyMachine(name: string): Promise<{ ok: boolean; issues: VerifyIssue[]; error?: string }>
+  onVerify(cb: (s: VerifyState) => void): () => void
+  /** Analizza la cartella delle immagini locali e dice cosa riconosce */
+  analyzeMedia(): Promise<MediaReport>
+  getLibraryStats(systemId: string): Promise<LibraryStats | null>
+  getPrefs(): Promise<{ favorites: string[]; recents: string[] }>
+  toggleFavorite(gameId: string): Promise<string[]>
+  /** Sposta tutto (ROM, BIOS, cartella MAME di questa versione) su un'altra cartella o disco */
+  setupRoot(rootDir: string): Promise<Settings>
+  /** Crea la cartella dedicata alla versione di MAME indicata e la imposta */
+  makeMameFolder(): Promise<{ ok: boolean; path: string; error?: string }>
+  /** Controlla il mame.exe indicato: versione e numero di macchine che conosce */
+  checkMame(): Promise<{ ok: boolean; version: string; machines: number; error?: string; warning?: string }>
+  onGameFailed(cb: (message: string) => void): () => void
+  /** Avvisi non gravi durante l'avvio (per esempio "riprovo senza effetti video") */
+  onGameNote(cb: (message: string) => void): () => void
+  getLibraryStatus(): Promise<LibraryEvent>
+  onLibrary(cb: (e: LibraryEvent) => void): () => void
   getInputMap(): Promise<InputMapReport>
   getReport(): Promise<OptimizationReport>
+  getDiagnostics(): Promise<DiagnosticReport>
   sendFeedback(systemId: string, answer: Feedback): Promise<void>
   /** Si attiva quando un gioco si chiude; restituisce la funzione per smettere di ascoltare */
   onGameEnded(cb: (e: GameEnded) => void): () => void
@@ -180,5 +344,6 @@ export interface MrApi {
   openFolder(target: 'roms' | 'bios' | string): Promise<void>
   /** Crea le cartelle ROM/BIOS mancanti e le imposta come predefinite */
   setupFolders(): Promise<Settings>
-  getArt(game: Game, kind: ArtKind): Promise<string | null>
+  /** cachedOnly: restituisce solo ciò che è già salvato, senza scaricare niente */
+  getArt(game: Game, kind: ArtKind, cachedOnly?: boolean): Promise<string | null>
 }

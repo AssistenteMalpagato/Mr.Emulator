@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
-import type { SystemInfo } from '@shared/types'
+import { useEffect, useRef, useState } from 'react'
+import type { LibraryEvent, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
+import { sfx } from '../sound'
 import ArtShowcase from './ArtShowcase'
 import Orbs from './Orbs'
+import SystemArt from './SystemArt'
 
 const COLS = 4
 
@@ -12,15 +14,27 @@ interface Props {
   onSettings: () => void
   onPc: () => void
   onInput: () => void
+  lib: LibraryEvent | null
 }
 
-export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInput }: Props): React.JSX.Element {
+export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInput, lib }: Props): React.JSX.Element {
   const [index, setIndex] = useState(0)
   const sel = systems[index]
+  const firstRender = useRef(true)
+  useEffect(() => {
+    if (firstRender.current) firstRender.current = false
+    else sfx.move()
+  }, [index])
 
   useEffect(() => {
     setIndex((i) => Math.min(i, Math.max(0, systems.length - 1)))
   }, [systems.length])
+
+  const gridRef = useRef<HTMLElement>(null)
+  // il sistema scelto resta sempre visibile quando la griglia scorre
+  useEffect(() => {
+    gridRef.current?.children[index]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [index])
 
   useInput({
     onMove: (dir) =>
@@ -35,7 +49,20 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
     onMenu: onSettings
   })
 
-  if (!sel) return <div className="loading">Caricamento…</div>
+  if (!sel) {
+    // lista vuota: o si sta ancora caricando, o l'utente ha nascosto tutti i sistemi
+    return (
+      <div className="loading" style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center', justifyContent: 'center' }}>
+        <div>{lib?.scanning ? 'Caricamento…' : 'Nessun sistema da mostrare.'}</div>
+        {!lib?.scanning && (
+          <>
+            <div className="hint">Puoi sceglierli in Impostazioni → Sistemi in home.</div>
+            <button className="chip" onClick={onSettings}>⚙ IMPOSTAZIONI</button>
+          </>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="screen select" style={{ ['--accent' as string]: sel.color }}>
@@ -46,6 +73,16 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
           MR. <span>EMULATOR</span>
         </h1>
         <div className="top-actions">
+          {lib?.offline && (
+            <span className="scan warn" title={`Non trovo: ${lib.offline}`}>
+              💾 CARTELLA NON RAGGIUNGIBILE
+            </span>
+          )}
+          {lib?.scanning && (
+            <span className="scan" title="La libreria si aggiorna in background">
+              ⟳ SCANSIONE{lib.found > 0 ? ` · ${lib.found.toLocaleString('it')}` : ''}
+            </span>
+          )}
           <button className="chip" onClick={onInput}>
             🎮 COMANDI
           </button>
@@ -60,14 +97,15 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
 
       <div className="select-body">
         <section className="hero" key={sel.id}>
+          <SystemArt id={sel.id} className="hero-art" />
           <div className="hero-short">{sel.short}</div>
           <div className="hero-name">{sel.name}</div>
           <div className="hero-count">
-            {sel.phase !== 1 ? 'IN ARRIVO' : `${sel.gameCount} ${sel.gameCount === 1 ? 'GIOCO' : 'GIOCHI'}`}
+            {sel.phase !== 1 ? 'IN ARRIVO' : `${sel.gameCount.toLocaleString('it')} ${sel.gameCount === 1 ? 'GIOCO' : 'GIOCHI'}`}
           </div>
         </section>
 
-        <section className="grid" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
+        <section className="grid" ref={gridRef} style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
           {systems.map((s, i) => (
             <button
               key={s.id}
@@ -76,6 +114,7 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
               onMouseEnter={() => setIndex(i)}
               onClick={() => s.phase === 1 && onOpen(s)}
             >
+              <SystemArt id={s.id} className="tile-art" />
               <span className="tile-short">{s.short}</span>
               <span className="tile-name">{s.name}</span>
               {s.phase !== 1 && <span className="tile-lock">SOON</span>}

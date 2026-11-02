@@ -1,8 +1,10 @@
 import { app } from 'electron'
 import { join, resolve, parse, sep } from 'path'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { writeFileAtomic } from './atomic'
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
 import type { ArtKind, Game, SystemDef } from '@shared/types'
 import { prettyName } from './scanner'
+import type { MediaSource } from './media'
 import { buildTitleIndex, parentCandidates, type TitleIndex } from './titles'
 
 /**
@@ -29,6 +31,56 @@ const clean = (s: string): string => s.replace(/[&*/:`<>?\\|"]/g, '_')
 const DAT_URL =
   'https://raw.githubusercontent.com/libretro/libretro-database/master/metadat/fbneo-split/FBNeo%20-%20Arcade%20Games.dat'
 
+/** Titoli di MAME (nome breve -> titolo, e titolo del gioco principale per le varianti), forniti dal programma */
+/** Cartella delle immagini locali (Multimedia / EXTRAs), se indicata */
+let mediaProvider: (() => MediaSource | null) | null = null
+export const setMediaProvider = (fn: () => MediaSource | null): void => {
+  mediaProvider = fn
+}
+
+/** Toglie le copie delle immagini locali già fatte (da usare quando cambia la cartella indicata) */
+export function clearLocalArt(): void {
+  try {
+    for (const sys of readdirSync(artRoot())) {
+      for (const sub of readdirSync(join(artRoot(), sys))) {
+        if (sub.startsWith('local_')) rmSync(join(artRoot(), sys, sub), { recursive: true, force: true })
+      }
+    }
+  } catch {
+    // niente cache: niente da togliere
+  }
+}
+
+/** Toglie i segni "copertina mancante" (cambiati i DAT, i titoli trovati possono essere diversi) */
+export function clearArtMisses(): void {
+  try {
+    for (const sys of readdirSync(artRoot())) {
+      for (const f of readdirSync(join(artRoot(), sys))) if (f.endsWith('.miss')) rmSync(join(artRoot(), sys, f), { force: true })
+    }
+  } catch {
+    // niente cache: niente da togliere
+  }
+}
+
+export interface MameTitles {
+  /** Titoli delle versioni sorelle dello stesso gioco (altre regioni), dalla più comune: serve quando la propria non ha immagini */
+  siblingTitles(name: string): string[]
+  /** Nome breve del gioco principale, se questa è una variante */
+  parentOf(name: string): string | undefined
+  titleOf(name: string): string | undefined
+  parentTitleOf(name: string): string | undefined
+}
+let mameProvider: (() => Promise<MameTitles | null>) | null = null
+export const setMameTitleProvider = (fn: () => Promise<MameTitles | null>): void => {
+  mameProvider = fn
+}
+
+/** Titoli delle console (Software List di MAME), forniti dal programma */
+let softProvider: ((sys: SystemDef) => Promise<Map<string, string> | null>) | null = null
+export const setSoftTitleProvider = (fn: (sys: SystemDef) => Promise<Map<string, string> | null>): void => {
+  softProvider = fn
+}
+
 let datMap: Map<string, string> | null = null
 let titleIndex: TitleIndex = new Map()
 
@@ -44,7 +96,7 @@ export async function arcadeTitles(): Promise<Map<string, string> | null> {
       if (res.ok) {
         text = await res.text()
         mkdirSync(join(file, '..'), { recursive: true })
-        writeFileSync(file, text, 'utf-8')
+        writeFileAtomic(file, text)
       }
     } catch {
       // offline: si riproverà più tardi
@@ -69,7 +121,7 @@ function candidates(fileName: string): string[] {
 const localPath = (systemId: string, kind: string, name: string): string =>
   join(artRoot(), systemId, kind, `${name}.png`)
 
-const missPath = (systemId: string, stem: string, kind: ArtKind): string => join(artRoot(), systemId, `${stem}.${kind}.v2.miss`)
+const missPath = (systemId: string, stem: string, kind: ArtKind): string => join(artRoot(), systemId, `${stem}.${kind}.v4.miss`)
 
 const toUrl = (systemId: string, kind: string, name: string): string =>
   `${ART_SCHEME}://art/${encodeURIComponent(systemId)}/${kind}/${encodeURIComponent(name)}.png`
@@ -128,7 +180,8 @@ const inflight = new Map<string, Promise<string | null>>()
 
 export function getArt(game: Game, system: SystemDef, enabled: boolean, kind: ArtKind): Promise<string | null> {
   if (game.demo || !system.thumbs) return Promise.resolve(null)
-  const stem = clean(parse(game.fileName).name)
+  // per le varianti MAME il nome della macchina è diverso da quello dello ZIP
+  const stem = clean(game.machine ?? parse(game.fileName).name)
   const key = `${system.id}:${stem}:${kind}`
   const running = inflight.get(key)
   if (running) return running
@@ -138,16 +191,65 @@ export function getArt(game: Game, system: SystemDef, enabled: boolean, kind: Ar
 }
 
 async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem: string, kind: ArtKind): Promise<string | null> {
+  // 0) immagini locali (pacchetti Multimedia): nome breve esatto, senza rete; per le varianti si ripiega sul gioco principale
+  const media = mediaProvider?.() ?? null
+  if (media && (system.engine === 'mame' || system.titleDat)) {
+    const parent = system.titleSource === 'mame' && mameProvider ? (await mameProvider())?.parentOf(stem.toLowerCase()) : undefined
+    const hit = await media.find(kind, [stem.toLowerCase(), parent ?? ''])
+    if (hit) {
+      const dest = localPath(system.id, `local_${kind}`, stem)
+      try {
+        if (!existsSync(dest)) {
+          mkdirSync(join(dest, '..'), { recursive: true })
+          writeFileSync(dest, await hit.read())
+        }
+        return toUrl(system.id, `local_${kind}`, stem)
+      } catch {
+        // file illeggibile o danneggiato: si prosegue con le altre fonti
+      }
+    }
+  }
+
   let names: string[]
   let fallbacks: string[] = []
-  if (system.titleDat) {
+  /** Altri indirizzi da provare: (archivio, nome) */
+  let extra: Array<{ repo: string; name: string }> = []
+  if (system.titleSource === 'mame') {
+    const titles = mameProvider ? await mameProvider() : null
+    if (!titles) return null // mame.exe non disponibile: nessun titolo, nessun segno di "mancante"
+    const title = titles.titleOf(stem.toLowerCase())
+    names = title ? [clean(title)] : []
+    const key = stem.toLowerCase()
+    // le varianti spesso non hanno la copertina: si ripiega su quella del gioco principale
+    const parent = titles.parentTitleOf(key)
+    if (parent) fallbacks = [clean(parent)]
+    // l'archivio di FBNeo usa titoli leggermente diversi e a volte ha ciò che manca in quello di MAME:
+    // il nome breve del gioco permette di ricavare il suo titolo FBNeo (stesso elenco usato per Arcade e Neo Geo)
+    const dat = await arcadeTitles()
+    const fbOwn = dat?.get(key)
+    if (fbOwn) extra.push({ repo: 'FBNeo - Arcade Games', name: clean(fbOwn) })
+    // le versioni di un'altra regione (USA, Giappone…) hanno la stessa copertina
+    for (const sib of titles.siblingTitles(key).slice(0, 4)) extra.push({ repo: system.thumbs!, name: clean(sib) })
+    const parentKey = titles.parentOf(key)
+    const fbParent = parentKey ? dat?.get(parentKey) : undefined
+    if (fbParent) extra.push({ repo: 'FBNeo - Arcade Games', name: clean(fbParent) })
+  } else if (system.titleDat) {
     // Arcade / Neo Geo: dal nome breve del file si ricava il titolo completo
     const titles = await arcadeTitles()
     if (!titles) return null // DAT non disponibile (offline): nessun segno di "mancante"
     const title = titles.get(stem.toLowerCase())
     names = title ? [clean(title)] : []
-    // hack e bootleg spesso non hanno la copertina verticale: si ripiega su quella del gioco originale
-    if (title && kind === 'boxart') fallbacks = parentCandidates(titleIndex, title).map(clean)
+    // hack, bootleg e versioni di altre regioni: si ripiega su quelle del gioco originale o delle versioni sorelle
+    if (title) fallbacks = parentCandidates(titleIndex, title).map(clean)
+  } else if (system.softlist && softProvider) {
+    // console FBNeo: nome breve -> titolo dalla Software List di MAME; senza elenco si prova il nome del file
+    const soft = await softProvider(system)
+    const title = soft?.get(stem.toLowerCase())
+    names = title ? [clean(title)] : candidates(game.fileName)
+    if (title) {
+      const base = title.replace(/\s*\(.*$/, '').trim()
+      fallbacks = ['USA', 'USA, Europe', 'Europe', 'World', 'Japan'].map((r) => clean(`${base} (${r})`)).filter((n) => n !== names[0])
+    }
   } else {
     names = candidates(game.fileName)
   }
@@ -160,14 +262,15 @@ async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem:
   // 2) da scaricare (prima il titolo esatto, poi i giochi originali); il file si salva col nome del gioco richiesto
   return slot(async () => {
     let networkProblem = false
-    for (const n of [...names, ...fallbacks]) {
-      const res = await download(system.thumbs!, dir, n)
+    const attempts = [...names, ...fallbacks].map((name) => ({ repo: system.thumbs!, name })).concat(extra)
+    for (const { repo, name: n } of attempts) {
+      const res = await download(repo, dir, n)
       if (res === 'error') networkProblem = true
       else if (res !== 'notfound') {
         const saveAs = names[0] ?? n
         const file = localPath(system.id, dir, saveAs)
         mkdirSync(join(file, '..'), { recursive: true })
-        writeFileSync(file, res.data)
+        writeFileAtomic(file, res.data)
         return toUrl(system.id, dir, saveAs)
       }
     }

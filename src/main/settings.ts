@@ -1,6 +1,7 @@
 import { app } from 'electron'
 import { join, dirname } from 'path'
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, readFileSync, mkdirSync, copyFileSync } from 'fs'
+import { writeFileAtomic } from './atomic'
 import type { Settings } from '@shared/types'
 
 const DEFAULTS: Settings = {
@@ -18,18 +19,38 @@ const DEFAULTS: Settings = {
   gameMonitor: 0,
   dedicatedGpu: true,
   inputScheme: 'laptop',
-  arcadeLayout: 'standard'
+  arcadeLayout: 'standard',
+  showUnsupported: false,
+  mamePath: '',
+  mameChdDir: '',
+  hideBadRoms: false,
+  launchFix: {},
+  launchFloor: 0,
+  mediaDir: '',
+  datDir: '',
+  hiddenSystems: [],
+  videoPreview: true,
+  musicVolume: 0.5,
+  mameRomDir: '',
+  soundOn: true,
+  soundVolume: 0.4,
+  attractSeconds: 90,
+  launchAnimation: true,
+  favorites: [],
+  recents: [],
+  mameClones: false
 }
 
 const file = (): string => join(app.getPath('userData'), 'settings.json')
 
 export function loadSettings(): Settings {
-  try {
-    if (existsSync(file())) {
-      return { ...DEFAULTS, ...JSON.parse(readFileSync(file(), 'utf-8')) }
+  // file principale, poi la copia di sicurezza; solo se entrambi sono illeggibili si riparte dai valori di default
+  for (const f of [file(), `${file()}.bak`]) {
+    try {
+      if (existsSync(f)) return { ...DEFAULTS, ...JSON.parse(readFileSync(f, 'utf-8')) }
+    } catch {
+      // file corrotto: si prova con la copia
     }
-  } catch {
-    // file corrotto: si riparte dai valori di default
   }
   return { ...DEFAULTS }
 }
@@ -37,6 +58,11 @@ export function loadSettings(): Settings {
 export function saveSettings(s: Settings): Settings {
   const merged = { ...DEFAULTS, ...s }
   mkdirSync(dirname(file()), { recursive: true })
-  writeFileSync(file(), JSON.stringify(merged, null, 2), 'utf-8')
+  try {
+    if (existsSync(file())) copyFileSync(file(), `${file()}.bak`)
+  } catch {
+    // la copia è un extra: se non riesce si salva comunque
+  }
+  writeFileAtomic(file(), JSON.stringify(merged, null, 2))
   return merged
 }

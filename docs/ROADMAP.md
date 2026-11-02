@@ -18,7 +18,8 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Copertine per Arcade e Neo Geo (titolo ricavato dal DAT di FBNeo, 7718 giochi)
 - [x] File BIOS (es. neogeo.zip) nascosti dalla lista
 - [x] Carosello 3D di copertine, sfondo a rotazione, tendine ed effetti luce (con modalità "effetti ridotti")
-- [ ] Download in blocco delle copertine di un intero sistema
+- [x] Archivi completi: scansione in background, indice salvato su disco, lista virtuale, ricerca e salti di pagina (provato su 54.000 file finti)
+- [ ] Download in blocco delle copertine di un intero sistema (opzionale: occupa molto spazio)
 - [x] Schermata di selezione sistema in stile "character select"
 - [x] Avvio dei giochi tramite RetroArch e ritorno al launcher (da verificare con RetroArch reale)
 - [x] Navigazione con tastiera, mouse e gamepad (da verificare con pad reali ed encoder arcade)
@@ -36,6 +37,21 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Schermata "Comandi" per provare in tempo reale tastiera, encoder e pad
 - [ ] Procedura guidata per pad sconosciuti (es. encoder Zero Delay): da fare e provare con l'hardware reale
 - [ ] Verifica dei comandi con un pannello arcade e un pad reali
+- [x] Sistema "Arcade (MAME)" con MAME autonomo (testato con 0.229): elenco letto da MAME stesso, varianti, comandi, effetti, supporto ai dischi CHD (da verificare con un MAME vero)
+- [x] Filtro per famiglia in Arcade (MAME): Neo Geo, Capcom CPS, Sega, Taito, Namco, Konami e altre, con conteggi e scelta ricordata
+- [x] Cartella ROM dedicata a ogni versione di MAME (es. mame0229), pulsante "usa un altro disco per tutto" e protezione se il disco esterno è scollegato
+- [x] Pannello di ricerca anche senza tastiera: tastiera sullo schermo per joystick/pad/mouse, iniziali A-Z, risultati in tempo reale, ricerca per parole
+- [x] Ricerca evoluta: tastiera intelligente (spegne i tasti inutili), disposizione alfabetica per joystick, anteprima con copertina, schede (a caso, famiglie, anni), preferiti e ultimi giochi
+- [x] Direzione artistica "fumetto da picchiaduro" (carattere Anton incorporato, contorni, retino, raggi), suoni sintetizzati, sequenza INSERT COIN all'avvio e rotazione di copertine a riposo (attract mode)
+- [x] Controllo ROM con il verificatore di MAME: elenco degli ZIP difettosi con i file da sostituire, segno ⚠ nella lista, controllo del singolo gioco, opzione per nascondere i giochi difettosi
+- [x] Immagini locali per MAME/FBNeo (cartelle o ZIP con snap, flyers, titles…) con precedenza sul download
+- [x] Pacchetto Multimedia: monitor video con cornice sul gioco selezionato (videosnaps) e lettore della colonna sonora (soundtrack), con pausa da tastiera e pad (da verificare dentro Electron: codec e riproduzione)
+- [x] Copertine sempre presenti: ricerca in altre regioni e nel repository FBNeo; se manca tutto, copertina fumettistica generata (titolo, sistema, anno, screenshot)
+- [x] Sistemi FBNeo aggiuntivi: Game Gear, PC Engine/TurboGrafx-16, SuperGrafx, SG-1000, FDS, Neo Geo Pocket, ColecoVision, MSX, ZX Spectrum, Channel F, Astrocade (da provare con le ROM reali)
+- [x] Cartella DAT nelle impostazioni (FinalBurn Neo, Kawaks, MAME): nome breve → titolo per le console, con precedenza sulle Software List di MAME (da provare con i DAT reali)
+- [x] Home: disegni originali per categoria di macchina (cabinato, portatile, cartuccia, disco, computer) e scheda "Sistemi in home" nelle impostazioni per nascondere i sistemi
+- [x] Dreamcast, Naomi, Atomiswave (Flycast) e PlayStation (pcsx_rearmed), con controllo dei BIOS (da provare con RetroArch reale)
+- [x] Debug: salvataggi sicuri, registro errori, istanza unica, ripristino della finestra, test automatici (`npm test`) e schermata Diagnostica
 - [ ] Nintendo 64, Nintendo DS, Mega CD, Famicom Disk System
 - [ ] GameCube e Wii (da verificare sulle prestazioni)
 
