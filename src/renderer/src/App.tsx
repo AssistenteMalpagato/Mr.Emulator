@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Feedback, Game, GameEnded, LibraryEvent, SystemInfo } from '@shared/types'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import type { Feedback, Game, GameEnded, InputScheme, LibraryEvent, SystemInfo } from '@shared/types'
 import SystemSelect from './components/SystemSelect'
 import GameList from './components/GameList'
 import SettingsScreen from './components/Settings'
 import SystemReport from './components/SystemReport'
 import InputTest from './components/InputTest'
+import FirstRun from './components/FirstRun'
+import TitleScreen from './components/TitleScreen'
+import { getLang, setLang, useLangVersion, type LangSetting, t } from './i18n'
 import RomCheck from './components/RomCheck'
 import FeedbackPrompt from './components/FeedbackPrompt'
 import LaunchSequence from './components/LaunchSequence'
@@ -13,19 +16,19 @@ import { configureSound, sfx } from './sound'
 import { music } from './music'
 import MiniPlayer from './components/MiniPlayer'
 import { clearArtCache } from './hooks/useArt'
-import { isModalOpen, setCabinetKeys } from './hooks/useInput'
+import { isModalOpen, setCabinetKeys, setCustomKeys } from './hooks/useInput'
 
-type Screen = { name: 'systems' } | { name: 'games'; system: SystemInfo } | { name: 'settings' } | { name: 'pc' } | { name: 'input' } | { name: 'romcheck' }
+type Screen = { name: 'systems' } | { name: 'games'; system: SystemInfo } | { name: 'settings' } | { name: 'pc' } | { name: 'input' } | { name: 'romcheck' } | { name: 'firstrun' } | { name: 'title' }
 
 export default function App(): React.JSX.Element {
-  const [screen, setScreen] = useState<Screen>({ name: 'systems' })
+  const [screen, setScreen] = useState<Screen>({ name: 'title' })
   const [systems, setSystems] = useState<SystemInfo[]>([])
   const [games, setGames] = useState<Game[]>([])
   const [message, setMessage] = useState('')
   const timer = useRef<number | undefined>(undefined)
 
   const [wipe, setWipe] = useState(0)
-  const [scheme, setScheme] = useState<'laptop' | 'cabinet'>('laptop')
+  const [scheme, setScheme] = useState<InputScheme>('laptop')
   const [lib, setLib] = useState<LibraryEvent | null>(null)
   const [busy, setBusy] = useState(false)
   const [launching, setLaunching] = useState<Game | null>(null)
@@ -34,9 +37,39 @@ export default function App(): React.JSX.Element {
   const [attract, setAttract] = useState(false)
   const [opts, setOpts] = useState({ attractSeconds: 90, launchAnimation: true })
   const lastActivity = useRef(Date.now())
-  const screenRef = useRef<Screen>({ name: 'systems' })
+  const langVersion = useLangVersion()
+  const [version, setVersion] = useState('')
+  useEffect(() => {
+    window.mr.getAppVersion().then(setVersion)
+  }, [])
+  const cursorHide = useRef(false)
+  // modalità cabinato: il cursore sparisce dopo 2 secondi senza movimenti e ricompare se si muove il mouse
+  useEffect(() => {
+    let t = 0
+    const show = (): void => {
+      document.documentElement.classList.remove('nocursor')
+      window.clearTimeout(t)
+      if (cursorHide.current) t = window.setTimeout(() => document.documentElement.classList.add('nocursor'), 2000)
+    }
+    show()
+    window.addEventListener('mousemove', show)
+    return () => {
+      window.removeEventListener('mousemove', show)
+      window.clearTimeout(t)
+    }
+  }, [])
+  const screenRef = useRef<Screen>({ name: 'title' })
   useEffect(() => setCabinetKeys(scheme === 'cabinet'), [scheme])
   const [ended, setEnded] = useState<GameEnded | null>(null)
+
+  // primo avvio: se non è mai stato configurato nulla si parte dalla procedura guidata
+  useEffect(() => {
+    window.mr.getSettings().then((st) => {
+      const next: Screen = !st.firstRunDone && !st.retroarchPath && !st.mamePath ? { name: 'firstrun' } : st.titleScreen === false ? { name: 'systems' } : { name: 'title' }
+      screenRef.current = next
+      setScreen(next)
+    })
+  }, [])
 
   // quando un gioco si chiude, il programma chiede com'è andata
   useEffect(() => window.mr.onGameEnded(setEnded), [])
@@ -77,7 +110,12 @@ export default function App(): React.JSX.Element {
   const applyFx = useCallback(() => {
     window.mr.getSettings().then((st) => {
       document.documentElement.classList.toggle('light-fx', !!st.lightEffects)
+      document.documentElement.dataset.theme = st.theme ?? 'fighter'
+      setLang((st.language ?? 'auto') as LangSetting)
+      cursorHide.current = !!st.cabinetHideCursor
+      if (!st.cabinetHideCursor) document.documentElement.classList.remove('nocursor')
       setScheme(st.inputScheme)
+      setCustomKeys(st.inputScheme === 'custom' ? st.customControls : null)
       configureSound(st.soundOn, st.soundVolume)
       music.setVolume(st.musicVolume)
       setOpts({ attractSeconds: st.attractSeconds, launchAnimation: st.launchAnimation })
@@ -142,8 +180,8 @@ export default function App(): React.JSX.Element {
   const copyLog = async (): Promise<void> => {
     const log = await window.mr.getLastMameLog()
     try {
-      await navigator.clipboard.writeText(log || '(nessun dettaglio salvato)')
-      toast('Dettagli dell\'errore copiati negli appunti: incollali dove servono.', true)
+      await navigator.clipboard.writeText(log || t('(nessun dettaglio salvato)'))
+      toast(t('Dettagli dell\'errore copiati negli appunti: incollali dove servono.'), true)
     } catch {
       toast('Non riesco a copiare negli appunti.')
     }
@@ -181,7 +219,10 @@ export default function App(): React.JSX.Element {
   if (screen.name === 'romcheck') {
     view = <RomCheck onBack={() => go({ name: 'systems' })} />
   } else if (screen.name === 'input') {
-    view = <InputTest onBack={() => go({ name: 'systems' })} onChanged={(st) => setScheme(st.inputScheme)} />
+    view = <InputTest onBack={() => go({ name: 'systems' })} onChanged={(st) => {
+          setScheme(st.inputScheme)
+          setCustomKeys(st.inputScheme === 'custom' ? st.customControls : null)
+        }} />
   } else if (screen.name === 'pc') {
     view = <SystemReport onBack={() => go({ name: 'systems' })} />
   } else if (screen.name === 'settings') {
@@ -190,6 +231,7 @@ export default function App(): React.JSX.Element {
         onPc={() => go({ name: 'pc' })}
         onRomCheck={() => go({ name: 'romcheck' })}
         onClose={() => go({ name: 'systems' })}
+        onGuide={() => go({ name: 'firstrun' })}
         onSaved={() => {
           clearArtCache()
           refresh()
@@ -197,6 +239,21 @@ export default function App(): React.JSX.Element {
         }}
       />
     )
+  } else if (screen.name === 'title') {
+    view = (
+      <TitleScreen
+        systems={systems.filter((x) => !x.hidden)}
+        version={version}
+        onStart={() => go({ name: 'systems' })}
+        onLang={async (l) => {
+          setLang(l)
+          const cur = await window.mr.getSettings()
+          await window.mr.saveSettings({ ...cur, language: l })
+        }}
+      />
+    )
+  } else if (screen.name === 'firstrun') {
+    view = <FirstRun onDone={() => { refresh(); applyFx(); go({ name: 'systems' }) }} />
   } else if (screen.name === 'games') {
     view = (
       <GameList system={screen.system} games={games} message={message} onLaunch={launch} onBack={() => go({ name: 'systems' })} letterJump={scheme !== 'cabinet'} onRomCheck={() => go({ name: 'romcheck' })} onToastClick={hasLog ? copyLog : undefined} />
@@ -207,7 +264,7 @@ export default function App(): React.JSX.Element {
 
   const wipeColor = screen.name === 'games' ? screen.system.color : '#ffd400'
   return (
-    <>
+    <Fragment key={langVersion}>
       {view}
       <MiniPlayer />
       {launching && (
@@ -227,7 +284,7 @@ export default function App(): React.JSX.Element {
           }}
         />
       )}
-      {busy && <div className="busy">⟳ Preparazione dell'elenco… (succede solo la prima volta)</div>}
+      {busy && <div className="busy">{t('⟳ Preparazione dell\'elenco… (succede solo la prima volta)')}</div>}
       {wipe > 0 && <div key={wipe} className="wipe" style={{ ['--w' as string]: wipeColor }} />}
       {ended && (
         <FeedbackPrompt
@@ -237,6 +294,6 @@ export default function App(): React.JSX.Element {
         />
       )}
       <div className="fx-scan" />
-    </>
+    </Fragment>
   )
 }

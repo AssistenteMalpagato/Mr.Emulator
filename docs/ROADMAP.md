@@ -35,7 +35,7 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [ ] Verifica delle impostazioni con RetroArch e schermi reali (portatile, PC desktop, TV/proiettore)
 - [x] Comandi da tastiera (WASD + J/K/L) e preset pannello arcade I-PAC a 2 giocatori e 6 pulsanti, con uscita da gioco tramite combinazione sul pannello
 - [x] Schermata "Comandi" per provare in tempo reale tastiera, encoder e pad
-- [ ] Procedura guidata per pad sconosciuti (es. encoder Zero Delay): da fare e provare con l'hardware reale
+- [x] Comandi manuali: assegnazione a mano di tasti, pulsanti e assi (tastiera, pad, encoder) per due giocatori, in sequenza guidata, con controllo dei conflitti; valgono per RetroArch, MAME e per il menu (da provare con hardware reale)
 - [ ] Verifica dei comandi con un pannello arcade e un pad reali
 - [x] Sistema "Arcade (MAME)" con MAME autonomo (testato con 0.229): elenco letto da MAME stesso, varianti, comandi, effetti, supporto ai dischi CHD (da verificare con un MAME vero)
 - [x] Filtro per famiglia in Arcade (MAME): Neo Geo, Capcom CPS, Sega, Taito, Namco, Konami e altre, con conteggi e scelta ricordata
@@ -52,7 +52,10 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Home: disegni originali per categoria di macchina (cabinato, portatile, cartuccia, disco, computer) e scheda "Sistemi in home" nelle impostazioni per nascondere i sistemi
 - [x] Dreamcast, Naomi, Atomiswave (Flycast) e PlayStation (pcsx_rearmed), con controllo dei BIOS (da provare con RetroArch reale)
 - [x] Debug: salvataggi sicuri, registro errori, istanza unica, ripristino della finestra, test automatici (`npm test`) e schermata Diagnostica
-- [ ] Nintendo 64, Nintendo DS, Mega CD, Famicom Disk System
+- [x] Schermo: quattro modalità immagine (altezza piena, pixel perfetti, pixel perfetti in altezza, stirata) con anteprima sulle misure reali del tuo schermo, modalità diversa per sistema, rotazione per monitor verticale (MAME), bordo grafico (overlay) di RetroArch (da provare con RetroArch reale)
+- [x] Temi grafici (Picchiaduro, Neon, Fosforo verde, Notte) e scelta manuale dello shader CRT
+- [x] Nintendo 64, Nintendo DS, Atari Jaguar e 3DO (core RetroArch, da provare con le ROM reali)
+- [ ] Mega CD (core dedicato)
 - [ ] GameCube e Wii (da verificare sulle prestazioni)
 
 ## Fase 3 — Estensioni
@@ -60,7 +63,7 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [ ] Filtri avanzati, preferiti e statistiche di gioco
 - [ ] Shader CRT preconfigurati e overlay
 - [ ] Temi grafici alternativi
-- [ ] Installer per Windows distribuito nelle Releases
+- [x] Installer per Windows (electron-builder + flusso automatico su GitHub; da provare su Windows)
 
 ## Principi del progetto
 - Nessun costo e nessuna API a pagamento: i dati devono funzionare offline o da fonti gratuite.

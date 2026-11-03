@@ -2,6 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ArcadeLayout, InputMapReport, InputScheme, Settings } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import Orbs from './Orbs'
+import ControlsEditor from './ControlsEditor'
+import type { CustomControls } from '@shared/types'
+import { t } from '../i18n'
 
 /** Da tasto fisico (event.code) al nome usato da RetroArch */
 function codeToKey(code: string): string {
@@ -45,6 +48,7 @@ export default function InputTest({ onBack, onChanged }: { onBack: () => void; o
   const [last, setLast] = useState<string>('')
   const [pads, setPads] = useState<PadState[]>([])
   const bodyRef = useRef<HTMLDivElement>(null)
+  const [editor, setEditor] = useState<{ start: CustomControls; presets: { laptop: CustomControls; cabinet: CustomControls } } | null>(null)
 
   const load = useCallback(async () => {
     const [m, st] = await Promise.all([window.mr.getInputMap(), window.mr.getSettings()])
@@ -130,40 +134,55 @@ export default function InputTest({ onBack, onChanged }: { onBack: () => void; o
     setMap(await window.mr.getInputMap())
   }
 
-  if (!map || !s) return <div className="loading">Caricamento…</div>
+  const openEditor = async (): Promise<void> => {
+    if (!s) return
+    const presets = await window.mr.getControlPresets()
+    // si parte dai comandi personalizzati già salvati, altrimenti da una copia dello schema in uso
+    setEditor({ start: s.customControls ?? (s.inputScheme === 'laptop' ? presets.laptop : presets.cabinet), presets })
+  }
+
+  if (!map || !s) return <div className="loading">{t('Caricamento…')}</div>
 
   return (
     <div className="screen report" style={{ ['--accent' as string]: '#ff6a00' }}>
       <Orbs />
       <header className="topbar">
         <button className="chip" onClick={onBack}>
-          ◀ INDIETRO
+          {t('◀ INDIETRO')}
         </button>
-        <h2 className="sys-title">Comandi</h2>
-        <span className="counter">{last ? `ultimo tasto: ${last}` : 'premi un tasto per provare · Esc due volte per uscire'}</span>
+        <h2 className="sys-title">{t('Comandi')}</h2>
+        <span className="counter">{last ? `ultimo tasto: ${last}` : t('premi un tasto per provare · Esc due volte per uscire')}</span>
       </header>
 
       <div className="report-body" ref={bodyRef}>
         <section className="card wide">
-          <h3>Che comandi usi?</h3>
+          <h3>{t('Che comandi usi?')}</h3>
           <Seg<InputScheme>
             value={s.inputScheme}
-            options={[['laptop', 'TASTIERA DEL PORTATILE'], ['cabinet', 'PANNELLO ARCADE (I-PAC)']]}
-            onChange={(v) => patch({ inputScheme: v })}
+            options={[['laptop', t('TASTIERA DEL PORTATILE')], ['cabinet', t('PANNELLO ARCADE (I-PAC)')], ['custom', t('PERSONALIZZATI')]]}
+            onChange={(v) => (v === 'custom' && !s.customControls ? openEditor() : patch({ inputScheme: v }))}
           />
           <div className="opt-row">
-            <span>Sistema Arcade: disposizione a 6 pulsanti</span>
+            <span>{t('Sistema Arcade: disposizione a 6 pulsanti')}</span>
             <Seg<ArcadeLayout>
               value={s.arcadeLayout}
-              options={[['standard', 'STANDARD (1-6 IN ORDINE)'], ['capcom', 'CAPCOM (PUGNI / CALCI)']]}
+              options={[['standard', t('STANDARD (1-6 IN ORDINE)')], ['capcom', t('CAPCOM (PUGNI / CALCI)')]]}
               onChange={(v) => patch({ arcadeLayout: v })}
             />
           </div>
           <p className="hint">
             {s.inputScheme === 'laptop'
-              ? 'Giocatore 1: WASD per muoversi, J K L U I O per i pulsanti. Giocatore 2: frecce e tastierino numerico.'
-              : 'Preset standard degli encoder I-PAC (gli stessi tasti di MAME). Si esce da un gioco tenendo premuta Moneta 1 e premendo Start 1.'}
+              ? t('Giocatore 1: WASD per muoversi, J K L U I O per i pulsanti. Giocatore 2: frecce e tastierino numerico.')
+              : s.inputScheme === 'cabinet'
+                ? t('Preset standard degli encoder I-PAC (gli stessi tasti di MAME). Si esce da un gioco tenendo premuta Moneta 1 e premendo Start 1.')
+                : t('Comandi assegnati da te (tastiera, pad o encoder). Si esce da un gioco tenendo premuta Moneta 1 e premendo Start 1.')}
           </p>
+          <div className="field-row">
+            <button className="chip" onClick={openEditor}>{t('🎛 ASSEGNA I PULSANTI A MANO')}</button>
+            {s.inputScheme === 'custom' && (
+              <button className="chip" onClick={() => patch({ inputScheme: 'cabinet' })}>{t('↩ TORNA AL PRESET AUTOMATICO')}</button>
+            )}
+          </div>
         </section>
 
         {map.players.map((p) => (
@@ -181,7 +200,7 @@ export default function InputTest({ onBack, onChanged }: { onBack: () => void; o
         ))}
 
         <section className="card wide">
-          <h3>Come si usano i pulsanti</h3>
+          <h3>{t('Come si usano i pulsanti')}</h3>
           {map.layouts.map((l) => (
             <div key={l.title} className="layout">
               <b>{l.title}</b>
@@ -201,9 +220,9 @@ export default function InputTest({ onBack, onChanged }: { onBack: () => void; o
         </section>
 
         <section className="card wide">
-          <h3>Pad collegati</h3>
+          <h3>{t('Pad collegati')}</h3>
           {pads.length === 0 ? (
-            <p className="hint">Nessun pad rilevato. Collegalo e premi un suo pulsante: il browser lo mostra solo dopo la prima pressione.</p>
+            <p className="hint">{t('Nessun pad rilevato. Collegalo e premi un suo pulsante: il browser lo mostra solo dopo la prima pressione.')}</p>
           ) : (
             pads.map((g) => (
               <div key={g.index} className="padbox">
@@ -223,9 +242,20 @@ export default function InputTest({ onBack, onChanged }: { onBack: () => void; o
               </div>
             ))
           )}
-          <p className="hint">Per i pad più comuni (Xbox, PlayStation, 8BitDo) RetroArch riconosce i pulsanti da solo.</p>
+          <p className="hint">{t('Per i pad più comuni (Xbox, PlayStation, 8BitDo) RetroArch riconosce i pulsanti da solo.')}</p>
         </section>
       </div>
+      {editor && (
+        <ControlsEditor
+          start={editor.start}
+          presets={editor.presets}
+          onCancel={() => setEditor(null)}
+          onSave={async (c) => {
+            setEditor(null)
+            await patch({ inputScheme: 'custom', customControls: c })
+          }}
+        />
+      )}
     </div>
   )
 }

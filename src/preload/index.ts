@@ -38,8 +38,14 @@ const api: MrApi = {
     return () => ipcRenderer.removeListener('library:event', handler)
   },
   getInputMap: () => ipcRenderer.invoke('input:map'),
+  getControlPresets: () => ipcRenderer.invoke('controls:presets'),
   getReport: () => ipcRenderer.invoke('report:get'),
   getDiagnostics: () => ipcRenderer.invoke('diagnostics:get'),
+  getCoreList: () => ipcRenderer.invoke('cores:list'),
+  installCore: (core: string) => ipcRenderer.invoke('cores:install', core),
+  getAppVersion: () => ipcRenderer.invoke('app:version'),
+  quitApp: () => ipcRenderer.invoke('app:quit'),
+  getBiosStatus: () => ipcRenderer.invoke('bios:status'),
   sendFeedback: (systemId, answer) => ipcRenderer.invoke('feedback:send', systemId, answer),
   onGameEnded: (cb) => {
     const handler = (_e: unknown, data: GameEnded): void => cb(data)

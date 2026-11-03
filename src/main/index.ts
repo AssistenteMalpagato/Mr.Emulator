@@ -19,13 +19,14 @@ import { detectHardware } from './hardware'
 import { buildReport, mameProfileFor, profileFor } from './optimize'
 import { toConfigText } from './profiles'
 import { setHighPerformanceGpu } from './gpuPref'
-import { buildInputConfig, buildInputMap, buildMameCtrlr } from './inputs'
+import { buildInputConfig, buildInputMap, buildMameCtrlr, presetControls } from './inputs'
 import { ART_SCHEME, arcadeTitles, clearArtMisses, clearLocalArt, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
 import { MediaSource } from './media'
 import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
-import { buildDiagnostics } from './diagnostics'
+import { coreList, coresDirOf, installCore } from './cores'
+import { biosStatus, buildDiagnostics } from './diagnostics'
 import { writeFileAtomic } from './atomic'
 import { softTitles } from './softlist'
 import { datTitles } from './datfiles'
@@ -75,8 +76,25 @@ async function applyGpuPreference(s: Settings): Promise<void> {
   else gpuPref = (await setHighPerformanceGpu(s.retroarchPath)) ? 'applied' : 'failed'
 }
 
+/** Modalità cabinato: schermo intero, avvio con Windows. Con l'argomento --cabinet (usato dall'avvio automatico) è sempre a tutto schermo. */
+let allowQuit = false
+const cabinetFlag = process.argv.includes('--cabinet')
+function applyCabinet(s: Settings): void {
+  if (win && !win.isDestroyed()) win.setFullScreen(s.cabinetFullscreen || cabinetFlag)
+  // l'avvio automatico ha senso solo nella versione installata: da sviluppo avvierebbe Electron "vuoto"
+  if (app.isPackaged) {
+    try {
+      app.setLoginItemSettings({ openAtLogin: s.cabinetAutostart, args: s.cabinetAutostart ? ['--cabinet'] : [] })
+    } catch (e) {
+      logCrash('setLoginItemSettings', e)
+    }
+  }
+}
+
 function createWindow(): void {
+  const startFull = loadSettings().cabinetFullscreen || cabinetFlag
   win = new BrowserWindow({
+    fullscreen: startFull,
     width: 1280,
     height: 720,
     minWidth: 960,
@@ -96,6 +114,17 @@ function createWindow(): void {
   Menu.setApplicationMenu(null)
   win.removeMenu()
   win.setMenuBarVisibility(false)
+  // chiusura bloccata: Alt+F4 non spegne il cabinato; Ctrl+Maiusc+Q o il pulsante nelle impostazioni sì
+  win.on('close', (e) => {
+    if (loadSettings().cabinetLockClose && !allowQuit) e.preventDefault()
+  })
+  win.webContents.on('before-input-event', (e, input) => {
+    if (input.type === 'keyDown' && input.control && input.shift && input.key.toLowerCase() === 'q') {
+      e.preventDefault()
+      allowQuit = true
+      app.quit()
+    }
+  })
   // se la finestra si blocca o la sua parte grafica si chiude da sola, si registra e si ricarica invece di restare nera
   let reloads = 0
   win.webContents.on('render-process-gone', (_e, d) => {
@@ -397,6 +426,7 @@ app.whenReady().then(async () => {
       clearLocalArt()
       mediaSrc = null
     }
+    applyCabinet(saved)
     if (before.datDir !== saved.datDir) clearArtMisses()
     if (before.romsDir !== saved.romsDir || before.datDir !== saved.datDir || before.showUnsupported !== saved.showUnsupported || before.mamePath !== saved.mamePath || before.mameClones !== saved.mameClones || before.mameRomDir !== saved.mameRomDir || before.hideBadRoms !== saved.hideBadRoms) {
       library.rescan(before.romsDir !== saved.romsDir || before.mameRomDir !== saved.mameRomDir)
@@ -451,7 +481,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('dialog:pick', async (_e, kind: PickKind) => {
     const res = await dialog.showOpenDialog(win!, {
       properties: [kind === 'dir' ? 'openDirectory' : 'openFile'],
-      filters: kind === 'file' ? [platform.exeFilter] : undefined
+      filters: kind === 'file' ? [platform.exeFilter] : kind === 'cfg' ? [{ name: 'Bordo grafico (overlay)', extensions: ['cfg'] }] : undefined
     })
     return res.canceled ? null : res.filePaths[0]
   })
@@ -489,7 +519,7 @@ app.whenReady().then(async () => {
         system,
         settings,
         profile.ini,
-        buildMameCtrlr(settings.inputScheme, settings.arcadeLayout),
+        buildMameCtrlr(settings.inputScheme, settings.arcadeLayout, settings.customControls),
         () => {
           t.t = Date.now()
           win?.hide()
@@ -520,7 +550,7 @@ app.whenReady().then(async () => {
 
     await applyGpuPreference(settings)
     const { profile } = profileFor(system, settings, hw, win)
-    const input = buildInputConfig(settings.inputScheme, settings.arcadeLayout, system.id === 'arcade')
+    const input = buildInputConfig(settings.inputScheme, settings.arcadeLayout, system.id === 'arcade', settings.customControls)
     const t = { t: 0 }
     return launchGame(
       game,
@@ -537,7 +567,7 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('input:map', () => {
     const s = loadSettings()
-    return buildInputMap(s.inputScheme, s.arcadeLayout)
+    return buildInputMap(s.inputScheme, s.arcadeLayout, s.customControls)
   })
 
   // controllo di mame.exe: versione e quante macchine conosce (rilegge l'elenco da capo)
@@ -554,6 +584,18 @@ app.whenReady().then(async () => {
     return { ok: true, version: d.version, machines: d.machines.size, warning }
   })
 
+  ipcMain.handle('controls:presets', () => ({ laptop: presetControls('laptop'), cabinet: presetControls('cabinet') }))
+  ipcMain.handle('app:version', () => app.getVersion())
+  ipcMain.handle('app:quit', () => {
+    allowQuit = true
+    app.quit()
+  })
+  ipcMain.handle('cores:list', () => coreList(loadSettings(), SYSTEMS, (id) => library.count(id)))
+  ipcMain.handle('cores:install', (_e, core: string) => {
+    const dir = coresDirOf(loadSettings())
+    return dir ? installCore(core, dir) : { core, ok: false, error: 'Indica prima retroarch.exe' }
+  })
+  ipcMain.handle('bios:status', () => biosStatus(loadSettings()).map(({ rule, found, verified }) => ({ systemId: rule.systemId, name: rule.name, files: rule.anyOf, where: rule.where, note: rule.note, found, verified })))
   ipcMain.handle('diagnostics:get', () =>
     buildDiagnostics({
       settings: loadSettings(),
@@ -575,6 +617,7 @@ app.whenReady().then(async () => {
   })
 
   createWindow()
+  applyCabinet(loadSettings())
   // la libreria si carica dopo che la finestra è aperta: l'interfaccia è subito utilizzabile
   void library.init()
   app.on('activate', () => BrowserWindow.getAllWindows().length === 0 && createWindow())

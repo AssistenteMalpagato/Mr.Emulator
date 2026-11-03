@@ -2,7 +2,8 @@
 export type PerfLevel = 'light' | 'balanced' | 'max'
 export type PerfMode = 'auto' | PerfLevel
 /** fit = schermo il più grande possibile con proporzioni corrette; pixel = pixel perfetti (scala intera) */
-export type ImageStyle = 'fit' | 'pixel'
+/** adattato = tutta l'altezza, proporzioni originali · pixel = solo multipli interi · pixel-height = multipli interi in altezza · stretch = riempie lo schermo (deforma) */
+export type ImageStyle = 'fit' | 'pixel' | 'pixel-height' | 'stretch'
 export type Tier = 'low' | 'mid' | 'high'
 /** Quanto pesa il core di emulazione sul PC */
 export type CoreCost = 'light' | 'medium' | 'heavy'
@@ -93,6 +94,33 @@ export interface Settings {
   dedicatedGpu: boolean
   inputScheme: InputScheme
   arcadeLayout: ArcadeLayout
+  /** Comandi assegnati a mano (valgono quando lo schema è "custom") */
+  customControls: CustomControls | null
+  /** La procedura guidata del primo avvio è stata completata o saltata */
+  firstRunDone: boolean
+  /** Modalità cabinato: il launcher a tutto schermo senza bordi */
+  /** Lingua del programma: auto = quella del sistema */
+  language: 'auto' | 'it' | 'en'
+  /** Mostra la schermata iniziale "premi start" all'avvio */
+  titleScreen: boolean
+  cabinetFullscreen: boolean
+  /** Modalità immagine diversa per alcuni sistemi (id sistema -> modalità); gli altri usano imageStyle */
+  imageBySystem: Record<string, ImageStyle>
+  /** Giochi arcade verticali su un monitor montato ruotato: senso di rotazione (solo MAME) */
+  tate: 'off' | 'cw' | 'ccw'
+  /** Bordo grafico (overlay) di RetroArch per riempire le strisce ai lati */
+  overlayEnabled: boolean
+  overlayPath: string
+  /** Tema grafico del launcher */
+  theme: 'fighter' | 'neon' | 'retro' | 'mono'
+  /** Effetto schermo a tubo catodico nei giochi RetroArch: auto = scelto dal programma in base al PC */
+  crtShader: 'auto' | 'off' | 'crt-easymode' | 'crt-geom' | 'crt-lottes' | 'crt-royale'
+  /** Si avvia da solo all'accensione di Windows (solo nella versione installata) */
+  cabinetAutostart: boolean
+  /** Il cursore del mouse sparisce dopo qualche secondo di inattività */
+  cabinetHideCursor: boolean
+  /** Alt+F4 e la chiusura accidentale non spengono il programma (si esce con Ctrl+Maiusc+Q o dalle impostazioni) */
+  cabinetLockClose: boolean
   /** Arcade/Neo Geo: mostra anche i giochi che il motore FBNeo non supporta (set MAME completi) */
   showUnsupported: boolean
   /** MAME autonomo (mame.exe), usato dal sistema "Arcade (MAME)" */
@@ -133,7 +161,23 @@ export interface Settings {
 }
 
 /** laptop = tastiera del portatile (WASD + J/K/L); cabinet = pannello arcade con encoder tipo I-PAC */
-export type InputScheme = 'laptop' | 'cabinet'
+export type InputScheme = 'laptop' | 'cabinet' | 'custom'
+
+/** Azioni di un giocatore che si possono assegnare a mano */
+export type ActionId = 'up' | 'down' | 'left' | 'right' | 'b1' | 'b2' | 'b3' | 'b4' | 'b5' | 'b6' | 'start' | 'select'
+
+/** A cosa è collegata un'azione: un tasto (nome RetroArch), un pulsante del pad (indice) o un asse ("+0", "-1") */
+export interface Binding {
+  key?: string
+  btn?: number
+  axis?: string
+}
+
+export type PlayerControls = Record<ActionId, Binding>
+export interface CustomControls {
+  p1: PlayerControls
+  p2: PlayerControls
+}
 /** standard = pulsanti 1..6 in ordine; capcom = pugni in alto e calci in basso (solo sistema Arcade) */
 export type ArcadeLayout = 'standard' | 'capcom'
 
@@ -256,7 +300,7 @@ export interface LibraryStats {
 
 export type ArtKind = 'boxart' | 'snap' | 'title'
 
-export type PickKind = 'dir' | 'file'
+export type PickKind = 'dir' | 'file' | 'cfg'
 
 export interface VerifyIssue {
   set: string
@@ -328,8 +372,19 @@ export interface MrApi {
   getLibraryStatus(): Promise<LibraryEvent>
   onLibrary(cb: (e: LibraryEvent) => void): () => void
   getInputMap(): Promise<InputMapReport>
+  /** Punti di partenza per i comandi manuali */
+  getControlPresets(): Promise<{ laptop: CustomControls; cabinet: CustomControls }>
   getReport(): Promise<OptimizationReport>
   getDiagnostics(): Promise<DiagnosticReport>
+  /** Elenco dei BIOS richiesti e se sono stati trovati */
+  /** Core di RetroArch usati dai sistemi, con lo stato di installazione */
+  getCoreList(): Promise<Array<{ core: string; systems: string[]; installed: boolean; games: number }>>
+  /** Scarica un core dall'archivio ufficiale di RetroArch */
+  installCore(core: string): Promise<{ core: string; ok: boolean; error?: string }>
+  /** Chiude il programma (anche con la chiusura bloccata) */
+  quitApp(): Promise<void>
+  getAppVersion(): Promise<string>
+  getBiosStatus(): Promise<Array<{ systemId: string; name: string; files: string[]; where: string; note: string; found: string | null; verified: 'ok' | 'unknown' | 'unchecked' | null }>>
   sendFeedback(systemId: string, answer: Feedback): Promise<void>
   /** Si attiva quando un gioco si chiude; restituisce la funzione per smettere di ascoltare */
   onGameEnded(cb: (e: GameEnded) => void): () => void
