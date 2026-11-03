@@ -32,6 +32,33 @@ export interface SystemDef {
   softlist?: string[]
 }
 
+/** Cosa c'è di salvato per un gioco, e cosa succede all'avvio */
+export interface SaveInfo {
+  /** console = si chiede all'avvio; arcade = si sceglie nell'anteprima */
+  kind: 'console' | 'arcade'
+  /** Il gioco riprende da dove era (impostazione attuale) */
+  resume: boolean
+  /** Stato salvato (data in millisecondi) */
+  state: { time: number } | null
+  /** Salvataggio del gioco stesso (memory card, batteria) */
+  sram: { time: number } | null
+  /** MAME: il gioco è tra quelli di cui si salvano i record */
+  hiscore: boolean
+  /** All'avvio va chiesto "continua o nuova partita" */
+  ask: boolean
+}
+
+export interface SaveStats {
+  dir: string
+  files: number
+  bytes: number
+}
+
+export interface LaunchOptions {
+  /** Nuova partita: non carica lo stato salvato (se c'è, se ne conserva una copia) */
+  fresh?: boolean
+}
+
 export interface DiagnosticCheck {
   level: 'ok' | 'warn' | 'bad'
   title: string
@@ -96,6 +123,9 @@ export interface Settings {
   arcadeLayout: ArcadeLayout
   /** Comandi assegnati a mano (valgono quando lo schema è "custom") */
   customControls: CustomControls | null
+  /** Combinazioni del joypad per uscire dal gioco e aprire il menu */
+  padExit: PadExit
+  padMenu: PadMenu
   /** La procedura guidata del primo avvio è stata completata o saltata */
   firstRunDone: boolean
   /** Modalità cabinato: il launcher a tutto schermo senza bordi */
@@ -111,6 +141,18 @@ export interface Settings {
   /** Bordo grafico (overlay) di RetroArch per riempire le strisce ai lati */
   overlayEnabled: boolean
   overlayPath: string
+  /** Cartella con i bordi (.cfg): per ogni sistema si cerca da sola quello giusto */
+  overlayDir: string
+  /** Cartella dei salvataggi (vuota = "saves" accanto alla cartella ROM) */
+  savesDir: string
+  /** Console: salva da sola lo stato all'uscita e propone di continuare all'avvio (sostituisce la Memory Card) */
+  resumeConsoles: boolean
+  /** Arcade: per ogni gioco, se riprendere la partita (id del gioco -> sì/no) */
+  resumeArcade: Record<string, boolean>
+  /** MAME: salva i punteggi record dei giochi arcade (plugin hiscore) */
+  hiscore: boolean
+  /** Bordo scelto a mano per un sistema ("-" = nessun bordo per quel sistema) */
+  overlayBySystem: Record<string, string>
   /** Tema grafico del launcher */
   theme: 'fighter' | 'neon' | 'retro' | 'mono'
   /** Effetto schermo a tubo catodico nei giochi RetroArch: auto = scelto dal programma in base al PC */
@@ -162,6 +204,15 @@ export interface Settings {
 
 /** laptop = tastiera del portatile (WASD + J/K/L); cabinet = pannello arcade con encoder tipo I-PAC */
 export type InputScheme = 'laptop' | 'cabinet' | 'custom'
+
+/** Come si esce da un gioco con il joypad */
+export type PadExit = 'start-select' | 'hold-select' | 'l3-r3' | 'none'
+/** Come si apre il menu del gioco (RetroArch / MAME) con il joypad */
+export type PadMenu = 'hold-start' | 'l3-r3' | 'l1-r1-start-select' | 'none'
+export interface PadCombos {
+  exit: PadExit
+  menu: PadMenu
+}
 
 /** Azioni di un giocatore che si possono assegnare a mano */
 export type ActionId = 'up' | 'down' | 'left' | 'right' | 'b1' | 'b2' | 'b3' | 'b4' | 'b5' | 'b6' | 'start' | 'select'
@@ -384,6 +435,8 @@ export interface MrApi {
   /** Chiude il programma (anche con la chiusura bloccata) */
   quitApp(): Promise<void>
   getAppVersion(): Promise<string>
+  /** Bordo (.cfg) trovato in una cartella per ogni sistema */
+  findOverlays(dir: string): Promise<Record<string, string | null>>
   getBiosStatus(): Promise<Array<{ systemId: string; name: string; files: string[]; where: string; note: string; found: string | null; verified: 'ok' | 'unknown' | 'unchecked' | null }>>
   sendFeedback(systemId: string, answer: Feedback): Promise<void>
   /** Si attiva quando un gioco si chiude; restituisce la funzione per smettere di ascoltare */
@@ -392,7 +445,14 @@ export interface MrApi {
   getGames(systemId: string): Promise<Game[]>
   getSettings(): Promise<Settings>
   saveSettings(s: Settings): Promise<Settings>
-  launch(game: Game): Promise<LaunchResult>
+  launch(game: Game, opts?: LaunchOptions): Promise<LaunchResult>
+  getSaveInfo(game: Game): Promise<SaveInfo>
+  setResume(gameId: string, on: boolean): Promise<void>
+  getSaveStats(): Promise<SaveStats>
+  openSaves(): Promise<void>
+  backupSaves(): Promise<{ ok: boolean; path?: string; files?: number; error?: string }>
+  restoreSaves(): Promise<{ ok: boolean; files?: number; error?: string }>
+  importSaves(): Promise<{ copied: number }>
   pickPath(kind: PickKind): Promise<string | null>
   /** Restituisce l'indirizzo locale di una copertina (la scarica se manca) oppure null */
   /** Apre in Esplora risorse la cartella ROM, BIOS o di un sistema */
