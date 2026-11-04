@@ -6,9 +6,10 @@ import SettingsScreen from './components/Settings'
 import SystemReport from './components/SystemReport'
 import InputTest from './components/InputTest'
 import FirstRun from './components/FirstRun'
+import { refreshConsoleArt } from './consoleArt'
 import TitleScreen from './components/TitleScreen'
 import ResumeDialog, { type ResumeChoice } from './components/ResumeDialog'
-import { getLang, setLang, useLangVersion, type LangSetting, t } from './i18n'
+import { setLang, useLangVersion, type LangSetting, t } from './i18n'
 import RomCheck from './components/RomCheck'
 import FeedbackPrompt from './components/FeedbackPrompt'
 import LaunchSequence from './components/LaunchSequence'
@@ -40,8 +41,10 @@ export default function App(): React.JSX.Element {
   const lastActivity = useRef(Date.now())
   const langVersion = useLangVersion()
   const [version, setVersion] = useState('')
+  const [update, setUpdate] = useState<{ version: string; url: string } | null>(null)
   useEffect(() => {
     window.mr.getAppVersion().then(setVersion)
+    window.mr.getUpdate().then(setUpdate, () => undefined)
   }, [])
   const cursorHide = useRef(false)
   // modalità cabinato: il cursore sparisce dopo 2 secondi senza movimenti e ricompare se si muove il mouse
@@ -150,7 +153,11 @@ export default function App(): React.JSX.Element {
   }
   toastRef.current = toast
 
+  const opening = useRef(false)
   const openSystem = async (system: SystemInfo): Promise<void> => {
+    // un secondo "Invio" o clic mentre l'elenco si carica non deve aprire due volte (né finire sul primo gioco)
+    if (opening.current) return
+    opening.current = true
     // la prima volta l'elenco di un sistema (specie MAME) può richiedere qualche secondo: si avvisa
     const t = window.setTimeout(() => setBusy(true), 400)
     try {
@@ -158,6 +165,7 @@ export default function App(): React.JSX.Element {
     } finally {
       window.clearTimeout(t)
       setBusy(false)
+      opening.current = false
     }
     go({ name: 'games', system })
   }
@@ -249,6 +257,7 @@ export default function App(): React.JSX.Element {
         onGuide={() => go({ name: 'firstrun' })}
         onSaved={() => {
           clearArtCache()
+          refreshConsoleArt()
           refresh()
           applyFx()
         }}
@@ -274,7 +283,7 @@ export default function App(): React.JSX.Element {
       <GameList system={screen.system} games={games} message={message} onLaunch={launch} onBack={() => go({ name: 'systems' })} letterJump={scheme !== 'cabinet'} onRomCheck={() => go({ name: 'romcheck' })} onToastClick={hasLog ? copyLog : undefined} />
     )
   } else {
-    view = <SystemSelect systems={systems.filter((x) => !x.hidden)} onOpen={openSystem} lib={lib} onSettings={() => go({ name: 'settings' })} onPc={() => go({ name: 'pc' })} onInput={() => go({ name: 'input' })} />
+    view = <SystemSelect update={update} onUpdate={() => window.mr.openUpdate()} systems={systems.filter((x) => !x.hidden)} onOpen={openSystem} lib={lib} onSettings={() => go({ name: 'settings' })} onPc={() => go({ name: 'pc' })} onInput={() => go({ name: 'input' })} />
   }
 
   const wipeColor = screen.name === 'games' ? screen.system.color : '#ffd400'

@@ -4,7 +4,7 @@ import { useInput } from '../hooks/useInput'
 import { sfx } from '../sound'
 import { getLang, t } from '../i18n'
 import Orbs from './Orbs'
-import SystemArt from './SystemArt'
+import ConsoleImage from './ConsoleImage'
 
 interface Props {
   systems: SystemInfo[]
@@ -58,6 +58,7 @@ export default function TitleScreen({ systems, version, onStart, onLang }: Props
           <span className="tt-mr">MR.</span>
           <span className="tt-em">EMULATOR</span>
         </h1>
+        <div className="tt-by">by Assistente Malpagato software</div>
         <div className="tt-start">{t('PREMI START')}</div>
         <div className="tt-hint">{t('tasto qualsiasi · joystick · pulsante · clic')}</div>
       </div>
@@ -67,7 +68,7 @@ export default function TitleScreen({ systems, version, onStart, onLang }: Props
           <div className="tt-track">
             {[...strip, ...strip].map((s, i) => (
               <div key={i} className="tt-sys" style={{ ['--tile' as string]: s.color }}>
-                <SystemArt id={s.id} className="tt-art" />
+                <ConsoleImage id={s.id} color={s.color} className="tt-art" />
                 <span>{s.short}</span>
               </div>
             ))}

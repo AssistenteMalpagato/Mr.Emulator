@@ -1,17 +1,17 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import type { Game, SaveInfo, SystemInfo } from '@shared/types'
+import type { ArtBulkState, Game, PlayStat, SaveInfo, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import CoverCarousel from './CoverCarousel'
 import Orbs from './Orbs'
 import FadeBackdrop from './FadeBackdrop'
 import SearchPanel from './SearchPanel'
-import { pickArt } from '../hooks/useArt'
+import { clearArtCache, pickArt } from '../hooks/useArt'
 import { sfx } from '../sound'
 import { music } from '../music'
 import type { MediaTrack } from '@shared/types'
 import type { LibraryStats } from '@shared/types'
 import { decadeLabel, decadeOf, initialOf, matchAll, norm, splitTitle } from '../search'
-import { formatDate, getLang, t } from '../i18n'
+import { formatDate, formatDuration, getLang, t } from '../i18n'
 
 /** Altezza di una riga (compreso lo spazio): la lista disegna solo quelle visibili */
 const ROW_H = 58
@@ -188,6 +188,40 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
       window.clearTimeout(h)
     }
   }, [gameId, sbump]) // eslint-disable-line react-hooks/exhaustive-deps
+  // statistiche di gioco (tempo e partite), aggiornate quando si torna da una partita
+  const [plays, setPlays] = useState<Record<string, PlayStat>>({})
+  useEffect(() => {
+    window.mr.getStats().then(setPlays, () => undefined)
+  }, [sbump])
+  const topGames = useMemo(
+    () =>
+      Object.entries(plays)
+        .filter(([id]) => byId.has(id))
+        .sort((a, b) => b[1].seconds - a[1].seconds)
+        .slice(0, 40)
+        .map(([id]) => byId.get(id)!),
+    [plays, byId]
+  )
+  // copertine di tutto il sistema: avanzamento del download in blocco
+  const [bulk, setBulk] = useState<ArtBulkState | null>(null)
+  useEffect(() => {
+    let was = false
+    const off = window.mr.onArtBulk((st) => {
+      if (st.systemId !== system.id) return
+      setBulk(st)
+      // a fine download le copertine nuove si vedono subito
+      if (was && !st.running) {
+        clearArtCache()
+        setTick((n) => n + 1)
+      }
+      was = st.running
+    })
+    // se l'utente l'ha chiesto, appena si apre un sistema si scaricano da sole le copertine di tutti i giochi
+    window.mr.getSettings().then((s) => {
+      if (s.autoCovers && s.downloadArt && system.thumbs) void window.mr.startArtBulk(system.id)
+    })
+    return off
+  }, [system.id]) // eslint-disable-line react-hooks/exhaustive-deps
   /** Arcade: riprendere la partita sì/no, ricordato per ogni gioco */
   const setResume = (on: boolean): void => {
     if (!game || !sinfo || sinfo.kind !== 'arcade' || sinfo.resume === on) return
@@ -262,7 +296,10 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
   }
 
   /** Avvia un gioco: il filmato dell'anteprima si ferma (non deve girare mentre si gioca) e riparte al ritorno */
+  const openedAt = useRef(Date.now())
   const launchGame = (g: Game): void => {
+    // nei primi istanti dopo l'apertura un clic o un tasto in ritardo non deve avviare il primo gioco
+    if (Date.now() - openedAt.current < 700) return
     setVideo(null)
     setVideoReady(false)
     window.addEventListener('focus', () => setMediaNonce((n) => n + 1), { once: true })
@@ -418,6 +455,19 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
             {t('🧪 CONTROLLO ROM')}
           </button>
         )}
+        {system.thumbs && (
+          <button
+            className={`chip ${bulk?.running ? 'on' : ''}`}
+            title={t('Scarica le copertine di tutti i giochi di questo sistema')}
+            onClick={() => (bulk?.running ? window.mr.cancelArtBulk() : window.mr.startArtBulk(system.id))}
+          >
+            {bulk?.running
+              ? t('⬇ {d}/{n} · FERMA', { d: bulk.done.toLocaleString(getLang() === 'it' ? 'it' : 'en'), n: bulk.total.toLocaleString(getLang() === 'it' ? 'it' : 'en') })
+              : bulk && bulk.total > 0
+                ? t('✔ COPERTINE {f}/{n}', { f: bulk.found.toLocaleString(getLang() === 'it' ? 'it' : 'en'), n: bulk.total.toLocaleString(getLang() === 'it' ? 'it' : 'en') })
+                : t('🖼 COPERTINE')}
+          </button>
+        )}
         <button className="chip search-btn" onClick={() => setSearchOpen(true)} title={t('Cerca un titolo ( / · Y del pad · pulsante 4 del pannello )')}>
           {t('🔍 CERCA')}
         </button>
@@ -545,6 +595,11 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
                     {sinfo.sram && <div className="savebox-s">{t('Memory card / batteria: {d}', { d: formatDate(sinfo.sram.time) })}</div>}
                   </div>
                 )}
+                {game && plays[game.id] && (
+                  <div className="playstat">
+                    {t('⏱ {d} giocati · {n} partite', { d: formatDuration(plays[game.id].seconds), n: plays[game.id].plays })}
+                  </div>
+                )}
                 <div className="preview-start">{t('▶ PREMI INVIO PER GIOCARE')}</div>
               </div>
             </>
@@ -565,6 +620,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
           decades={decades}
           favorites={favGames}
           recents={recentGames}
+          mostPlayed={topGames}
           favIds={favIds}
           onFamilyPick={(f) => {
             changeFamily(f)

@@ -1,8 +1,25 @@
-## Mr. Emulator 0.1.4
+## Mr. Emulator 0.2.0
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New
+- 🎨 **New home screen**: every system shows its console in a comic **poster** (burst, "1P START!" tag, ribbon) with **pop-out tiles** and a comic background that keeps the fade effects.
+- 🎭 **Two styles**: *Comic* or *Stage* (spotlight). Choose in **Settings → Look**.
+- 🕹️ **Console illustrations** for arcade, NES, SNES, Mega Drive, PlayStation and Game Boy.
+- 📷 **Your own console photos**: drop `<system>.png` (e.g. `snes.png`) in the consoles folder (Settings → Look → open folder). Photos are automatically stylised (background removed, comic outline); can be turned off.
+- 🧹 Code cleanup: unused code and styles removed.
+
+### Previous: 0.1.5
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
 
 ### New and fixed
+- 🖼️ **Console covers**: the program now looks up the official cover list for each console and picks the right file even when your file name differs (regions, discs, "Zelda, The"…). **Covers** button in every system downloads all covers at once (with progress); optional automatic download when you open a system.
+- 🎮 **Gamepad**: the mapping now covers the whole pad (L1, R1, **L2, R2, L3, R3**), D-pads reported as a "hat" and analog triggers, for PS3 clones and other non-Xbox pads.
+- 💿 **Multi-disc games** (PlayStation, 3DO, Dreamcast): one entry per game with an automatic `.m3u`; swap discs from the RetroArch menu.
+- 🔔 **Update notice** when a new release is out (one request to GitHub per day, can be turned off).
+- ⏱ **Play statistics** (time and games played) in the preview, and a **Most played** list in the search panel.
+- 🛠️ **Fixed**: opening a system could launch its first game by itself (a held button or a late click reached the new list). Also added a RetroArch log to Diagnostics to track save problems.
 - 💾 **Saves**: one saves folder (next to the ROMs, or wherever you choose); console progress is saved automatically when you exit and every 10 seconds, and before launching a game with a save you choose **Continue** or **New game** (the old save is kept as a safety copy). This replaces the Memory Card.
 - 🕹️ **Arcade**: in the game preview choose **New game / Resume** with ◀ ▶; MAME **high scores** are saved for supported games.
 - 📦 **Settings → Saves**: open the folder, back up to a ZIP, restore, import existing saves from RetroArch and the previous MAME location.

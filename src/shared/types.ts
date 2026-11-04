@@ -28,6 +28,8 @@ export interface SystemDef {
   thumbs?: string
   /** I file hanno nomi brevi (es. pbobblen.zip): il titolo si ricava dal DAT di FBNeo */
   titleDat?: boolean
+  /** Giochi spesso su più dischi: si uniscono in un solo gioco con un file .m3u */
+  multiDisc?: boolean
   /** Software List di MAME da cui ricavare i titoli dei file con nome breve (console FBNeo) */
   softlist?: string[]
 }
@@ -52,6 +54,23 @@ export interface SaveStats {
   dir: string
   files: number
   bytes: number
+}
+
+/** Statistiche di un gioco */
+export interface PlayStat {
+  plays: number
+  seconds: number
+  /** Ultima partita (millisecondi) */
+  last: number
+}
+
+export interface ArtBulkState {
+  systemId: string
+  running: boolean
+  total: number
+  done: number
+  /** Copertine trovate (le altre non esistono nell'archivio) */
+  found: number
 }
 
 export interface LaunchOptions {
@@ -151,6 +170,16 @@ export interface Settings {
   resumeArcade: Record<string, boolean>
   /** MAME: salva i punteggi record dei giochi arcade (plugin hiscore) */
   hiscore: boolean
+  /** Quando si apre un sistema, scarica da sola le copertine di tutti i suoi giochi (usa più dati) */
+  autoCovers: boolean
+  /** Giochi a più dischi: un solo gioco nella lista (con cambio disco), invece di un gioco per disco */
+  groupDiscs: boolean
+  /** Controlla da solo se c'è una nuova versione (una richiesta a GitHub al giorno) */
+  checkUpdates: boolean
+  /** Stile della schermata dei sistemi: fumetto (poster) o palcoscenico */
+  uiStyle: 'comic' | 'stage'
+  /** Le foto delle console messe dall'utente si trasformano in stile fumetto */
+  stylizePhotos: boolean
   /** Bordo scelto a mano per un sistema ("-" = nessun bordo per quel sistema) */
   overlayBySystem: Record<string, string>
   /** Tema grafico del launcher */
@@ -215,13 +244,15 @@ export interface PadCombos {
 }
 
 /** Azioni di un giocatore che si possono assegnare a mano */
-export type ActionId = 'up' | 'down' | 'left' | 'right' | 'b1' | 'b2' | 'b3' | 'b4' | 'b5' | 'b6' | 'start' | 'select'
+export type ActionId = 'up' | 'down' | 'left' | 'right' | 'b1' | 'b2' | 'b3' | 'b4' | 'b5' | 'b6' | 'l2' | 'r2' | 'l3' | 'r3' | 'start' | 'select'
 
 /** A cosa è collegata un'azione: un tasto (nome RetroArch), un pulsante del pad (indice) o un asse ("+0", "-1") */
 export interface Binding {
   key?: string
   btn?: number
   axis?: string
+  /** Croce direzionale che il pad presenta come "hat" (comune nei pad non Xbox) */
+  hat?: 'up' | 'down' | 'left' | 'right'
 }
 
 export type PlayerControls = Record<ActionId, Binding>
@@ -311,11 +342,6 @@ export interface GameEnded {
 }
 
 export type Feedback = 'ok' | 'slow' | 'better'
-
-export interface FolderInfo {
-  romsDir: string
-  biosDir: string
-}
 
 export interface LaunchResult {
   ok: boolean
@@ -435,6 +461,16 @@ export interface MrApi {
   /** Chiude il programma (anche con la chiusura bloccata) */
   quitApp(): Promise<void>
   getAppVersion(): Promise<string>
+  /** Foto della console messa dall'utente (data URL), o null */
+  getConsoleImage(systemId: string): Promise<string | null>
+  /** Per ogni sistema, il file della foto trovato (null = nessuna) */
+  listConsoleImages(): Promise<Record<string, string | null>>
+  openConsoleImages(): Promise<void>
+  /** Statistiche di tutti i giochi giocati (id del gioco -> statistiche) */
+  getStats(): Promise<Record<string, PlayStat>>
+  /** Nuova versione disponibile (null = nessuna o non controllato) */
+  getUpdate(): Promise<{ version: string; url: string } | null>
+  openUpdate(): Promise<void>
   /** Bordo (.cfg) trovato in una cartella per ogni sistema */
   findOverlays(dir: string): Promise<Record<string, string | null>>
   getBiosStatus(): Promise<Array<{ systemId: string; name: string; files: string[]; where: string; note: string; found: string | null; verified: 'ok' | 'unknown' | 'unchecked' | null }>>
@@ -446,6 +482,9 @@ export interface MrApi {
   getSettings(): Promise<Settings>
   saveSettings(s: Settings): Promise<Settings>
   launch(game: Game, opts?: LaunchOptions): Promise<LaunchResult>
+  startArtBulk(systemId: string): Promise<{ ok: boolean; error?: string }>
+  cancelArtBulk(): Promise<void>
+  onArtBulk(cb: (s: ArtBulkState) => void): () => void
   getSaveInfo(game: Game): Promise<SaveInfo>
   setResume(gameId: string, on: boolean): Promise<void>
   getSaveStats(): Promise<SaveStats>

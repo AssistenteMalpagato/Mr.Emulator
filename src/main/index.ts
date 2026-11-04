@@ -5,7 +5,7 @@ import { Readable } from 'stream'
 import { extname } from 'path'
 import { MEDIA_MIME, parseRange } from './rangeFile'
 import { tmpdir } from 'os'
-import { basename, join } from 'path'
+import { basename, isAbsolute, join } from 'path'
 import type { ArtKind, Feedback, Game, GameEnded, LaunchOptions, SaveInfo, OptimizationReport, PickKind, Settings, SystemDef, SystemInfo, VerifyState } from '@shared/types'
 import { mkdirSync } from 'fs'
 import { SYSTEMS } from './systems'
@@ -26,6 +26,9 @@ import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
 import { findOverlays } from './overlays'
+import { checkForUpdate, type UpdateInfo } from './updates'
+import { loadStats, recordPlay } from './stats'
+import { consoleImagesDir, ensureConsoleImagesDir, findConsoleImage, listConsoleImages, readConsoleImage } from './consoleImages'
 import { backupSaves, importSaves, mameSaveIni, prepareFresh, restoreSaves, retroSaveConfig, saveInfo, savesRoot, saveStats } from './saves'
 import { coreList, coresDirOf, installCore } from './cores'
 import { biosStatus, buildDiagnostics } from './diagnostics'
@@ -213,6 +216,8 @@ const library = createLibrary({
   softTitles: consoleTitles,
   mame: (onProgress) => getMame(onProgress),
   signature: (sys) => {
+    // i sistemi a più dischi cambiano elenco se si accende o spegne l'unione dei dischi
+    if (sys.multiDisc) return `${sys.softlist ? loadSettings().mamePath : ''}|${loadSettings().datDir}|discs:${loadSettings().groupDiscs}`
     if (sys.softlist) return `${loadSettings().mamePath}|${loadSettings().datDir}`
     if (sys.engine !== 'mame') return ''
     const s = loadSettings()
@@ -430,6 +435,7 @@ app.whenReady().then(async () => {
     }
     applyCabinet(saved)
     if (before.datDir !== saved.datDir) clearArtMisses()
+    if (before.groupDiscs !== saved.groupDiscs) library.rescan(false)
     if (before.romsDir !== saved.romsDir || before.datDir !== saved.datDir || before.showUnsupported !== saved.showUnsupported || before.mamePath !== saved.mamePath || before.mameClones !== saved.mameClones || before.mameRomDir !== saved.mameRomDir || before.hideBadRoms !== saved.hideBadRoms) {
       library.rescan(before.romsDir !== saved.romsDir || before.mameRomDir !== saved.mameRomDir)
     }
@@ -493,7 +499,8 @@ app.whenReady().then(async () => {
     if (!system) return { ok: false, error: 'Sistema sconosciuto.' }
     const settings = loadSettings()
     // la lista contiene percorsi relativi alla cartella del sistema
-    if (!game.demo) game = { ...game, path: join(systemDir(system, settings), game.path) }
+    // i giochi a più dischi hanno già un percorso completo (il file .m3u creato dal programma)
+    if (!game.demo && !isAbsolute(game.path)) game = { ...game, path: join(systemDir(system, settings), game.path) }
     // ultimi giochi avviati (si aggiorna all'avvio, il più recente per primo)
     {
       const cur = loadSettings()
@@ -505,6 +512,14 @@ app.whenReady().then(async () => {
       win?.show()
       win?.focus()
       const seconds = startedAt.t ? Math.round((Date.now() - startedAt.t) / 1000) : 0
+      // statistiche: solo le partite vere (almeno 20 secondi)
+      if (seconds >= 20 && !game.demo) {
+        try {
+          recordPlay(join(app.getPath('userData'), 'stats.json'), game.id, seconds)
+        } catch (e) {
+          logCrash('statistiche', e)
+        }
+      }
       startedAt.t = 0
       // il parere dell'utente si chiede solo dopo una partita vera
       if (seconds >= 45 && settings.autoTune) {
@@ -591,8 +606,52 @@ app.whenReady().then(async () => {
   })
 
   ipcMain.handle('controls:presets', () => ({ laptop: presetControls('laptop'), cabinet: presetControls('cabinet') }))
+  // copertine di un intero sistema in una volta sola (a gruppi, con avanzamento e possibilità di fermarsi)
+  let bulk: { cancel: boolean } | null = null
+  ipcMain.handle('art:bulk-start', async (_e, systemId: string) => {
+    if (bulk) return { ok: false, error: 'Un download di copertine è già in corso.' }
+    const system = SYSTEMS.find((x) => x.id === systemId)
+    const s = loadSettings()
+    if (!system || !system.thumbs) return { ok: false, error: 'Questo sistema non ha copertine online.' }
+    if (!s.downloadArt) return { ok: false, error: 'Il download delle copertine è spento nelle Impostazioni.' }
+    const games = (s.romsDir ? await library.games(systemId) : []).filter((g) => !g.demo)
+    const job = { cancel: false }
+    bulk = job
+    const st = { systemId, running: true, total: games.length, done: 0, found: 0 }
+    let last = 0
+    const emit = (force = false): void => {
+      if (force || Date.now() - last > 250) {
+        last = Date.now()
+        win?.webContents.send('art:bulk', { ...st })
+      }
+    }
+    emit(true)
+    let next = 0
+    const worker = async (): Promise<void> => {
+      while (!job.cancel && next < games.length) {
+        const g = games[next++]
+        try {
+          if (await getArt(g, system, true, 'boxart')) st.found++
+        } catch {
+          // una copertina che non arriva non ferma le altre
+        }
+        st.done++
+        emit()
+      }
+    }
+    void Promise.all(Array.from({ length: 6 }, worker)).finally(() => {
+      st.running = false
+      bulk = null
+      emit(true)
+    })
+    return { ok: true }
+  })
+  ipcMain.handle('art:bulk-cancel', () => {
+    if (bulk) bulk.cancel = true
+  })
+
   // salvataggi: informazioni per il gioco scelto, ripresa per gli arcade, cartella, backup e ripristino
-  const absGame = (game: Game, system: SystemDef, s: Settings): Game => (game.demo ? game : { ...game, path: join(systemDir(system, s), game.path) })
+  const absGame = (game: Game, system: SystemDef, s: Settings): Game => (game.demo || isAbsolute(game.path) ? game : { ...game, path: join(systemDir(system, s), game.path) })
   ipcMain.handle('saves:info', (_e, game: Game): SaveInfo | null => {
     const system = SYSTEMS.find((x) => x.id === game.systemId)
     if (!system || game.demo) return null
@@ -633,6 +692,46 @@ app.whenReady().then(async () => {
   })
   ipcMain.handle('saves:import', () => ({ copied: importSaves(loadSettings(), join(app.getPath('userData'), 'mame')) }))
   ipcMain.handle('overlays:find', (_e, dir: string) => findOverlays(dir, SYSTEMS.map((x) => x.id)))
+  // nuova versione: si controlla in background (al massimo una volta al giorno) e si ricorda il risultato
+  let update: UpdateInfo | null = null
+  const runUpdateCheck = async (): Promise<void> => {
+    const s = loadSettings()
+    if (!s.checkUpdates || !app.isPackaged) return
+    const f = join(app.getPath('userData'), 'update-check.json')
+    try {
+      const last = existsSync(f) ? (JSON.parse(readFileSync(f, 'utf8')) as { at: number; info: UpdateInfo | null }) : null
+      if (last && Date.now() - last.at < 24 * 3600 * 1000) {
+        update = last.info && last.info.version !== app.getVersion() ? last.info : null
+        return
+      }
+    } catch {
+      // copia illeggibile: si ricontrolla
+    }
+    update = await checkForUpdate(app.getVersion())
+    try {
+      writeFileAtomic(f, JSON.stringify({ at: Date.now(), info: update }))
+    } catch {
+      // la copia è un extra
+    }
+  }
+  void runUpdateCheck()
+  // foto delle console messe dall'utente in <dati del programma>\consoles
+  ipcMain.handle('consoles:image', (_e, id: string) => {
+    const sys = SYSTEMS.find((x) => x.id === id)
+    return sys ? readConsoleImage(findConsoleImage(consoleImagesDir(app.getPath('userData')), sys)) : null
+  })
+  ipcMain.handle('consoles:list', () => listConsoleImages(consoleImagesDir(app.getPath('userData')), SYSTEMS))
+  ipcMain.handle('consoles:open', async () => {
+    await shell.openPath(ensureConsoleImagesDir(app.getPath('userData')))
+  })
+  ipcMain.handle('stats:all', () => loadStats(join(app.getPath('userData'), 'stats.json')))
+  ipcMain.handle('update:get', async () => {
+    await runUpdateCheck()
+    return loadSettings().checkUpdates ? update : null
+  })
+  ipcMain.handle('update:open', async () => {
+    if (update && update.url.startsWith('https://github.com/VjAlbert/Mr.Emulator/')) await shell.openExternal(update.url)
+  })
   ipcMain.handle('app:version', () => app.getVersion())
   ipcMain.handle('app:quit', () => {
     allowQuit = true
