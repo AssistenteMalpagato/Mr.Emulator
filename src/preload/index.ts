@@ -42,6 +42,15 @@ const api: MrApi = {
   getReport: () => ipcRenderer.invoke('report:get'),
   getDiagnostics: () => ipcRenderer.invoke('diagnostics:get'),
   getCoreList: () => ipcRenderer.invoke('cores:list'),
+  detectTool: (kind: 'retroarch' | 'mame') => ipcRenderer.invoke('tools:detect', kind),
+  openToolSite: (kind: 'retroarch' | 'mame') => ipcRenderer.invoke('tools:site', kind),
+  onCheatsProgress: (cb: (pct: number) => void) => {
+    const h = (_e: unknown, pct: number): void => cb(pct)
+    ipcRenderer.on('cheats:progress', h)
+    return () => ipcRenderer.removeListener('cheats:progress', h)
+  },
+  getCoverCounts: () => ipcRenderer.invoke('art:counts'),
+  installCheats: () => ipcRenderer.invoke('cheats:install'),
   installCore: (core: string) => ipcRenderer.invoke('cores:install', core),
   findOverlays: (dir: string) => ipcRenderer.invoke('overlays:find', dir),
   startArtBulk: (systemId: string) => ipcRenderer.invoke('art:bulk-start', systemId),

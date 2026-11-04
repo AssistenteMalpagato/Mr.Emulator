@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { DiagnosticReport, Settings } from '@shared/types'
+import { ToolFinder } from './ToolFinder'
 import { useInput } from '../hooks/useInput'
 import Orbs from './Orbs'
 import { t } from '../i18n'
@@ -45,6 +46,12 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
   useInput({ onConfirm: () => (step === STEPS.length - 1 ? finish() : next()), onBack: back })
 
   if (!s) return <div className="loading">{t('Caricamento…')}</div>
+
+  const useTool = async (key: 'retroarchPath' | 'mamePath', p: string): Promise<void> => {
+    await window.mr.saveSettings({ ...s, [key]: p })
+    await reload()
+    if (key === 'retroarchPath') setCores(await window.mr.getCoreList())
+  }
 
   const pick = async (key: 'retroarchPath' | 'mamePath', kind: 'file'): Promise<void> => {
     const p = await window.mr.pickPath(kind)
@@ -125,6 +132,7 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
             <div className="fr-actions">
               <button className="chip big" onClick={() => pick('retroarchPath', 'file')}>{t('🔎 INDICA retroarch.exe')}</button>
             </div>
+            <ToolFinder kind="retroarch" current={s.retroarchPath} onUse={(p) => useTool('retroarchPath', p)} />
             <p className={s.retroarchPath ? 'fr-ok' : 'fr-warn'}>{s.retroarchPath ? `✔ ${s.retroarchPath}` : t('Non ancora indicato (puoi farlo anche dopo)')}</p>
             {s.retroarchPath && (
               <>
@@ -217,6 +225,7 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
             <div className="fr-actions">
               <button className="chip big" onClick={() => pick('mamePath', 'file')}>{t('🔎 INDICA mame.exe')}</button>
             </div>
+            <ToolFinder kind="mame" current={s.mamePath} onUse={(p) => useTool('mamePath', p)} />
             <p className={s.mamePath ? 'fr-ok' : 'fr-warn'}>{s.mamePath ? `✔ ${s.mamePath}` : t('Non indicato: va bene se non ti serve.')}</p>
           </>
         )}

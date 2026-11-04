@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { IMAGE_MODES } from './ScreenPreview'
 import { markConsoleImagesDirty, refreshConsoleArt } from '../consoleArt'
 import { SVG_FOR } from './consoleSvgs'
-import type { DiagnosticReport, ImageStyle, PickKind, Settings, SystemInfo } from '@shared/types'
+import type { ArtBulkState, DiagnosticReport, ImageStyle, PickKind, Settings, SystemInfo } from '@shared/types'
+import { ToolFinder } from './ToolFinder'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
 import { getLang, setLang, t } from '../i18n'
@@ -23,10 +24,26 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   const [mameInfo, setMameInfo] = useState<string>('')
   const [mediaInfo, setMediaInfo] = useState<string[]>([])
   const bodyRef = useRef<HTMLDivElement>(null)
-  const [tab, setTab] = useState<'general' | 'systems' | 'look' | 'saves' | 'cabinet' | 'diag'>('general')
+  const [tab, setTab] = useState<'general' | 'systems' | 'look' | 'screen' | 'covers' | 'extras' | 'saves' | 'cabinet' | 'diag'>('general')
   const [diag, setDiag] = useState<DiagnosticReport | null>(null)
   const [copied, setCopied] = useState(false)
   const [all, setAll] = useState<SystemInfo[]>([])
+  const [cheatMsg, setCheatMsg] = useState('')
+  const [cheatPct, setCheatPct] = useState<number | null>(null)
+  useEffect(() => window.mr.onCheatsProgress(setCheatPct), [])
+  const [covers, setCovers] = useState<Record<string, { have: number; total: number }>>({})
+  const loadCovers = (): void => {
+    window.mr.getCoverCounts().then((c) => setCovers(c ?? {}), () => undefined)
+  }
+  const [bulk, setBulk] = useState<Record<string, ArtBulkState>>({})
+  useEffect(
+    () =>
+      window.mr.onArtBulk((b) => {
+        setBulk((o) => ({ ...o, [b.systemId]: b }))
+        if (!b.running) loadCovers()
+      }),
+    [] // eslint-disable-line react-hooks/exhaustive-deps
+  )
   const [saveStats, setSaveStats] = useState<{ dir: string; files: number; bytes: number } | null>(null)
   const [saveMsg, setSaveMsg] = useState('')
   const [confirmRestore, setConfirmRestore] = useState(false)
@@ -59,6 +76,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
 
   // scheda Aspetto: quali console hanno già una foto nella cartella delle immagini
   useEffect(() => {
+    if (tab === 'covers') loadCovers()
     if (tab === 'look') window.mr.listConsoleImages().then(setConImgs, () => undefined)
   }, [tab])
 
@@ -107,9 +125,11 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
       <div className="settings-body" ref={bodyRef}>
         <div className="tabs">
           <button className={`tab ${tab === 'general' ? 'on' : ''}`} onClick={() => setTab('general')}>{t('GENERALE')}</button>
-          {onGuide && <button className="tab" onClick={onGuide}>{t('▶ RIFAI LA GUIDA')}</button>}
           <button className={`tab ${tab === 'systems' ? 'on' : ''}`} onClick={() => setTab('systems')}>{t('SISTEMI IN HOME')}</button>
           <button className={`tab ${tab === 'look' ? 'on' : ''}`} onClick={() => setTab('look')}>{t('ASPETTO')}</button>
+          <button className={`tab ${tab === 'screen' ? 'on' : ''}`} onClick={() => setTab('screen')}>{t('SCHERMO')}</button>
+          <button className={`tab ${tab === 'covers' ? 'on' : ''}`} onClick={() => setTab('covers')}>{t('COPERTINE')}</button>
+          <button className={`tab ${tab === 'extras' ? 'on' : ''}`} onClick={() => setTab('extras')}>{t('TROFEI E TRUCCHI')}</button>
           <button className={`tab ${tab === 'saves' ? 'on' : ''}`} onClick={() => setTab('saves')}>{t('SALVATAGGI')}</button>
           <button className={`tab ${tab === 'cabinet' ? 'on' : ''}`} onClick={() => setTab('cabinet')}>{t('MODALITÀ CABINATO')}</button>
           <button
@@ -122,6 +142,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           >
             {t('DIAGNOSTICA')}
           </button>
+          {onGuide && <button className="tab" onClick={onGuide}>{t('▶ RIFAI LA GUIDA')}</button>}
         </div>
         {tab === 'saves' ? (
           <div className="sysopts saves">
@@ -137,6 +158,27 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
               <input type="checkbox" checked={s.resumeConsoles} onChange={(e) => setS({ ...s, resumeConsoles: e.target.checked })} />
               {t('Console: continua da dove eri (sostituisce la Memory Card). Salva da solo quando esci e, se trova un salvataggio, ti chiede se continuare o iniziare una nuova partita')}
             </label>
+            <h3 className="sub-h">{t('Ripresa per singola console')}</h3>
+            <div className="persys">
+              {all.filter((x) => x.phase === 1 && x.core && x.engine !== 'mame' && x.id !== 'arcade' && x.id !== 'neogeo').map((x) => (
+                <label key={x.id} className="persys-row" style={{ ['--tile' as string]: x.color }}>
+                  <span className="persys-n">{x.name}</span>
+                  <select
+                    value={s.resumeBySystem?.[x.id] === undefined ? '' : s.resumeBySystem[x.id] ? 'on' : 'off'}
+                    onChange={(e) => {
+                      const next = { ...(s.resumeBySystem ?? {}) }
+                      if (e.target.value) next[x.id] = e.target.value === 'on'
+                      else delete next[x.id]
+                      setS({ ...s, resumeBySystem: next })
+                    }}
+                  >
+                    <option value="">{t('Come l\'interruttore generale')}</option>
+                    <option value="on">{t('Sì, continua da dove eri')}</option>
+                    <option value="off">{t('No, parti sempre da capo')}</option>
+                  </select>
+                </label>
+              ))}
+            </div>
             <label className="check">
               <input type="checkbox" checked={s.hiscore} onChange={(e) => setS({ ...s, hiscore: e.target.checked })} />
               {t('Arcade (MAME): salva i punteggi record dei giochi che lo permettono')}
@@ -197,7 +239,10 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
             <h3 className="sub-h">{t('Stile della schermata dei sistemi')}</h3>
             <div className="uistyles">
               {([['comic', 'FUMETTO', 'Poster con esplosione gialla, fascia nera e retino: lo stile a fumetto.'], ['stage', 'PALCOSCENICO', 'Riflettore, anello luminoso e nome gigante dietro la console.']] as const).map(([id, name, desc]) => (
-                <button key={id} className={`uistyle ${s.uiStyle === id ? 'on' : ''}`} onClick={() => setS({ ...s, uiStyle: id })}>
+                <button key={id} className={`uistyle ${s.uiStyle === id ? 'on' : ''}`} onClick={() => {
+                  setS({ ...s, uiStyle: id })
+                  document.documentElement.dataset.ui = id
+                }}>
                   <b>{t(name)}</b>
                   <small>{t(desc)}</small>
                 </button>
@@ -258,6 +303,99 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
                 </button>
               ))}
             </div>
+          </div>
+        ) : tab === 'covers' ? (
+          <div className="sysopts">
+            <p className="hint">{t('Le copertine si scaricano da una fonte gratuita, senza account. Qui scegli come e per quali sistemi.')}</p>
+            <label className="check">
+          <input type="checkbox" checked={s.downloadArt} onChange={(e) => setS({ ...s, downloadArt: e.target.checked })} />
+          {t('Scarica automaticamente copertine e immagini (gratuito, senza account)')}
+        </label>
+            <label className="check">
+          <input type="checkbox" checked={s.autoCovers} onChange={(e) => setS({ ...s, autoCovers: e.target.checked })} />
+          {t('Quando apro un sistema, scarica da sola le copertine di tutti i suoi giochi (usa più dati)')}
+        </label>
+            <h3 className="sub-h">{t('Cerca le copertine di un sistema')}</h3>
+            <div className="persys">
+              {all.filter((x) => x.phase === 1 && x.thumbs).map((x) => {
+                const b = bulk[x.id]
+                const c = covers[x.id]
+                const n = (v: number): string => v.toLocaleString(getLang() === 'it' ? 'it' : 'en')
+                const status = b?.running
+                  ? `${n(b.done)}/${n(b.total)}`
+                  : c && c.total > 0
+                    ? c.have >= c.total * 0.95
+                      ? t('✔ completa: {h}/{n}', { h: n(c.have), n: n(c.total) })
+                      : c.have > 0
+                        ? t('{h} di {n} presenti', { h: n(c.have), n: n(c.total) })
+                        : t('nessuna ancora ({n} giochi)', { n: n(c.total) })
+                    : ''
+                return (
+                  <div key={x.id} className="persys-row" style={{ ['--tile' as string]: x.color }}>
+                    <span className="persys-n">{x.name}</span>
+                    <span className="persys-st">
+                      {status}
+                    </span>
+                    <button className={`chip ${b?.running ? 'on' : ''}`} onClick={() => (b?.running ? window.mr.cancelArtBulk() : window.mr.startArtBulk(x.id))}>
+                      {b?.running ? t('FERMA') : t('🖼 CERCA COPERTINE')}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ) : tab === 'extras' ? (
+          <div className="sysopts">
+            <h3 className="sub-h">{t('Trofei (RetroAchievements)')}</h3>
+            <p className="hint">{t('RetroAchievements dà trofei nei giochi delle console (RetroArch). Serve un account gratuito su retroachievements.org: qui inserisci il nome utente e la password. La password resta solo su questo PC. I giochi devono essere le versioni riconosciute dal sito.')}</p>
+            <label className="check">
+              <input type="checkbox" checked={s.raEnabled} onChange={(e) => setS({ ...s, raEnabled: e.target.checked })} />
+              {t('Attiva i trofei nei giochi')}
+            </label>
+            <div className="field">
+              <label>{t('Nome utente')}</label>
+              <input value={s.raUser} onChange={(e) => setS({ ...s, raUser: e.target.value })} />
+            </div>
+            <div className="field">
+              <label>{t('Password')}</label>
+              <input type="password" value={s.raPassword} onChange={(e) => setS({ ...s, raPassword: e.target.value })} />
+            </div>
+            <label className="check">
+              <input type="checkbox" checked={s.raHardcore} onChange={(e) => setS({ ...s, raHardcore: e.target.checked })} />
+              {t('Modalità hardcore (trofei con più valore, ma niente salvataggi di stato né trucchi: il "continua da dove eri" non funziona)')}
+            </label>
+            <h3 className="sub-h">{t('Trucchi (cheat)')}</h3>
+            <p className="hint">{t('Scarica il database dei trucchi di RetroArch (gratuito). Se c\'è un file per il gioco che avvii, i trucchi vengono caricati da soli e li attivi o disattivi dal menu di RetroArch (Menu rapido → Trucchi). Non funziona con la modalità hardcore.')}</p>
+            <label className="check">
+              <input type="checkbox" checked={s.cheatsAuto} onChange={(e) => setS({ ...s, cheatsAuto: e.target.checked })} />
+              {t('Carica da soli i trucchi del gioco, se ci sono')}
+            </label>
+            <div className="field-row">
+              <button
+                className="chip"
+                onClick={async () => {
+                  setCheatPct(0)
+                  setCheatMsg(t('Scarico…'))
+                  const r = await window.mr.installCheats()
+                  setCheatMsg(r.ok ? t('✔ {n} file di trucchi installati', { n: r.files.toLocaleString(getLang() === 'it' ? 'it' : 'en') }) : t('✘ {e}', { e: r.error ?? '' }))
+                }}
+              >
+                {t('⬇ SCARICA I TRUCCHI')}
+              </button>
+              <span className="persys-st">{cheatMsg}</span>
+            </div>
+            {cheatPct !== null && cheatPct < 100 && cheatMsg === t('Scarico…') && (
+              <div className="pbar" role="progressbar" aria-valuenow={cheatPct}>
+                <i style={{ width: `${cheatPct}%` }} />
+                <b>{cheatPct}%</b>
+              </div>
+            )}
+            <div className="field-row">
+            </div>
+            <p className="hint">{t('Ricorda di premere SALVA. I trucchi e i trofei valgono per i giochi lanciati con RetroArch; MAME ha i suoi trucchi nel menu interno.')}</p>
+          </div>
+        ) : tab === 'screen' ? (
+          <div className="sysopts">
             <h3 className="sub-h">{t('Immagine dei giochi')}</h3>
             <p className="hint">{t('La modalità generale si sceglie in')} <b>{t('IL TUO PC')}</b> {t('(con l\'anteprima delle misure sul tuo schermo). Qui puoi dare a un sistema una modalità diversa: per esempio pixel perfetti per le console e altezza piena per l\'arcade.')}</p>
             <div className="persys">
@@ -454,6 +592,8 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
         </div>
         {field('RetroArch (retroarch.exe)', 'Es. C:\\RetroArch-Win64\\retroarch.exe', 'retroarchPath', 'file')}
         {field('MAME (mame.exe)', 'Es. D:\\MAME\\mame.exe — serve per il sistema Arcade (MAME); usa la stessa versione del tuo set ROM', 'mamePath', 'file')}
+        <ToolFinder kind="retroarch" current={s.retroarchPath} onUse={(p) => setS((o) => (o ? { ...o, retroarchPath: p } : o))} />
+        <ToolFinder kind="mame" current={s.mamePath} onUse={(p) => setS((o) => (o ? { ...o, mamePath: p } : o))} />
         <div className="field-row">
           <button
             className="chip"
@@ -538,20 +678,12 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           {t('Avvia i giochi a schermo intero')}
         </label>
         <label className="check">
-          <input type="checkbox" checked={s.downloadArt} onChange={(e) => setS({ ...s, downloadArt: e.target.checked })} />
-          {t('Scarica automaticamente copertine e immagini (gratuito, senza account)')}
-        </label>
-        <label className="check">
           <input type="checkbox" checked={s.checkUpdates} onChange={(e) => setS({ ...s, checkUpdates: e.target.checked })} />
           {t('Avvisami quando esce una nuova versione (una richiesta a GitHub al giorno, non si invia nulla di tuo)')}
         </label>
         <label className="check">
           <input type="checkbox" checked={s.groupDiscs} onChange={(e) => setS({ ...s, groupDiscs: e.target.checked })} />
           {t('Giochi a più dischi (PlayStation, 3DO, Dreamcast): un solo gioco nella lista; il cambio disco si fa dal menu di RetroArch')}
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={s.autoCovers} onChange={(e) => setS({ ...s, autoCovers: e.target.checked })} />
-          {t('Quando apro un sistema, scarica da sola le copertine di tutti i suoi giochi (usa più dati)')}
         </label>
         <label className="check">
           <input type="checkbox" checked={s.showUnsupported} onChange={(e) => setS({ ...s, showUnsupported: e.target.checked })} />

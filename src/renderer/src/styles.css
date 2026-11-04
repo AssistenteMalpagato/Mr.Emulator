@@ -171,7 +171,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* sfondo a dissolvenza con la schermata di gioco del titolo selezionato */
 .backdrop { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 .backdrop img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; filter: blur(2px) saturate(1.2);
-  -webkit-mask-image: linear-gradient(90deg, transparent 18%, #000 70%); mask-image: linear-gradient(90deg, transparent 18%, #000 70%); }
+  -webkit-mask-image: radial-gradient(ellipse at 50% 45%, #000 45%, rgba(0,0,0,.5) 100%); mask-image: radial-gradient(ellipse at 50% 45%, #000 45%, rgba(0,0,0,.5) 100%); }
 .backdrop img.in { animation: bdIn 1s ease forwards; }
 .backdrop img.out { animation: bdOut 1s ease forwards; }
 @keyframes bdIn { from { opacity: 0; transform: scale(1.04); } to { opacity: .34; transform: scale(1.1); } }
@@ -726,3 +726,179 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 .conrow.ok { background: color-mix(in srgb, #17c964 14%, var(--card2)); }
 .conrow-s { color: var(--muted); }
 .conrow code { color: #ffd400; font-size: 12px; }
+
+/* Impostazioni: più compatte, due colonne per le righe per sistema */
+.settings-body { gap: 10px; }
+.settings-body .persys { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 8px 12px; }
+.settings-body .sub-h { margin: 18px 0 4px; justify-self: start; }
+.persys-st { font-size: 12px; opacity: .8; }
+.persys-row:has(.persys-st) { grid-template-columns: minmax(70px, 1fr) auto auto; }
+/* schermata dei sistemi: più respiro tra poster e tessere */
+.select-body { gap: clamp(36px, 5vw, 80px); }
+.select-body > .grid { padding: 24px 22px; }
+.tabs .tab { padding: 8px 12px; font-size: 13px; }
+
+/* barra di avanzamento */
+.pbar { position: relative; height: 22px; background: var(--card2); border: 2px solid #000; box-shadow: 3px 3px 0 #000; overflow: hidden; max-width: 560px; }
+.pbar i { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(135deg, var(--accent) 0 12px, color-mix(in srgb, var(--accent) 70%, #fff) 12px 24px); transition: width .25s; }
+.pbar b { position: relative; display: block; text-align: center; font: 400 14px/18px var(--font); letter-spacing: 2px; color: #000; mix-blend-mode: normal; text-shadow: 0 0 3px #fff; }
+
+/* Impostazioni: si adattano alla risoluzione (testo e larghezza crescono con lo schermo) */
+.screen.settings { --su: clamp(14px, calc(0.55vw + 8px), 22px); }
+.settings-body { max-width: min(100%, 1600px); width: 100%; font-size: var(--su); gap: 12px; }
+.settings-body .hint, .settings-body .check, .settings-body .field label { font-size: var(--su); }
+.settings-body .hint { max-width: 78ch; }
+.settings-body input:not([type='checkbox']), .settings-body select { font-size: var(--su); max-width: 100%; }
+.settings-body .field { max-width: 900px; }
+.settings-body .field-row input { flex: 1 1 auto; }
+.settings-body .persys { grid-template-columns: repeat(auto-fill, minmax(clamp(320px, 28vw, 520px), 1fr)); }
+.settings-body .persys-row { font-size: var(--su); }
+.settings-body .tabs { flex-wrap: wrap; }
+.settings-body .tab { font-size: clamp(13px, calc(0.45vw + 8px), 19px); }
+
+
+/* ===== FUMETTO: l'intero programma come una pagina di fumetto (data-ui="comic") ===== */
+:root[data-ui='comic'] {
+  --ink: #0b0b0f; --pop: #ffd400; --paper: #f6edd2;
+  --bg: #f6edd2; --panel: #fffdf4; --deep: #efe4c3; --card: #fffdf4; --card2: #f9f1d8;
+  --text: #0b0b0f; --muted: #4b4538;
+}
+/* pagina: carta con retino Ben-Day e invecchiata ai bordi */
+:root[data-ui='comic'] body {
+  background:
+    radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--accent) 38%, transparent) 0 14%, transparent 15%) 0 0 / 100% 100% no-repeat,
+    radial-gradient(circle, color-mix(in srgb, var(--accent) 55%, #000) 1.6px, transparent 2.2px) 0 0 / 15px 15px,
+    radial-gradient(ellipse at center, transparent 55%, rgba(120,90,30,.28) 100%),
+    var(--paper);
+  color: var(--ink);
+}
+:root[data-ui='comic'] body::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse at 50% 40%, var(--paper) 30%, transparent 85%); opacity: .88; }
+:root[data-ui='comic'] .screen, :root[data-ui='comic'] #root > div { position: relative; z-index: 1; }
+:root[data-ui='comic'] .backdrop img { mix-blend-mode: multiply; filter: saturate(1.1); }
+:root[data-ui='comic'] .backdrop img.in { animation: cbd 1s ease forwards; }
+@keyframes cbd { from { opacity: 0; } to { opacity: .42; } }
+
+/* titoli: didascalia gialla con bordo, lettere nere */
+:root[data-ui='comic'] .sys-title { color: var(--ink); background: var(--pop); border: 4px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); padding: 2px 18px; transform: skewX(-8deg) rotate(-1deg); -webkit-text-stroke: 0; text-shadow: none; overflow: visible; }
+:root[data-ui='comic'] .logo { color: var(--ink); -webkit-text-stroke: 0; text-shadow: 3px 3px 0 var(--pop); }
+:root[data-ui='comic'] .logo span { background: none; -webkit-text-fill-color: var(--accent); text-shadow: 3px 3px 0 var(--ink); }
+:root[data-ui='comic'] .sub-h { display: inline-block; background: var(--accent); color: #fff; padding: 3px 16px; transform: skewX(-8deg) rotate(-.6deg); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); text-shadow: 2px 2px 0 var(--ink); letter-spacing: 2px; }
+:root[data-ui='comic'] .modal-title, :root[data-ui='comic'] h2 { color: var(--ink); text-shadow: 3px 3px 0 var(--pop); }
+:root[data-ui='comic'] .counter { color: var(--ink); background: #fff; border: 3px solid var(--ink); padding: 2px 12px; box-shadow: 3px 3px 0 var(--ink); }
+
+/* pulsanti: adesivi con bordo di china e ombra netta */
+:root[data-ui='comic'] .chip, :root[data-ui='comic'] button.tab, :root[data-ui='comic'] .tab {
+  background: #fff; color: var(--ink); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); clip-path: none; text-shadow: none;
+  transform: skewX(-6deg); transition: transform .08s, box-shadow .08s, background .08s;
+}
+:root[data-ui='comic'] .chip:hover, :root[data-ui='comic'] .tab:hover { background: var(--pop); color: var(--ink); border-color: var(--ink); transform: skewX(-6deg) translate(-1px,-1px); box-shadow: 6px 6px 0 var(--ink); }
+:root[data-ui='comic'] .chip:active { transform: skewX(-6deg) translate(3px,3px); box-shadow: 1px 1px 0 var(--ink); }
+:root[data-ui='comic'] .chip.on, :root[data-ui='comic'] .chip.save, :root[data-ui='comic'] .tab.on { background: var(--accent); color: #fff; border-color: var(--ink); text-shadow: 2px 2px 0 var(--ink); }
+:root[data-ui='comic'] .tab.on { background: var(--pop); color: var(--ink); text-shadow: none; }
+:root[data-ui='comic'] .chip.update { background: var(--pop); color: var(--ink); }
+:root[data-ui='comic'] .chip:disabled { opacity: .55; box-shadow: 2px 2px 0 var(--ink); }
+:root[data-ui='comic'] .chip.search-btn { background: var(--accent); color: #fff; }
+:root[data-ui='comic'] .chip *, :root[data-ui='comic'] .tab * { color: inherit; }
+
+/* elenco: strisce da vignetta */
+:root[data-ui='comic'] .row { background: #fff; color: var(--ink); border: 3px solid var(--ink); border-left-width: 10px; border-left-color: var(--tile, var(--accent)); box-shadow: 4px 4px 0 var(--ink); clip-path: none; }
+:root[data-ui='comic'] .row-num { color: var(--muted); }
+:root[data-ui='comic'] .row.active { background: var(--pop); color: var(--ink); border-color: var(--ink); box-shadow: 8px 8px 0 var(--ink); transform: translateX(14px) rotate(-.4deg); }
+:root[data-ui='comic'] .row.active::before { display: none; }
+:root[data-ui='comic'] .row.active .row-num, :root[data-ui='comic'] .row.active .row-name small { color: var(--ink); }
+:root[data-ui='comic'] .list::-webkit-scrollbar-thumb, :root[data-ui='comic'] .settings-body::-webkit-scrollbar-thumb { background: var(--ink); }
+
+/* scheda del gioco: riquadro con didascalia e retino */
+:root[data-ui='comic'] .preview-card { background: #fff; color: var(--ink); border: 4px solid var(--ink); box-shadow: 8px 8px 0 var(--ink); padding: 16px; background-image: radial-gradient(circle, rgba(0,0,0,.09) 1.3px, transparent 2px); background-size: 9px 9px; }
+:root[data-ui='comic'] .preview-card * { text-shadow: none; }
+:root[data-ui='comic'] .preview-card .chip { background: var(--pop); }
+:root[data-ui='comic'] .savebox { background: var(--card2); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); color: var(--ink); }
+:root[data-ui='comic'] .savebox * { color: var(--ink); text-shadow: none; }
+
+/* testi di aiuto: didascalie gialle */
+:root[data-ui='comic'] .hint { color: var(--ink); background: #fff3b0; border: 3px solid var(--ink); border-left-width: 10px; box-shadow: 4px 4px 0 var(--ink); padding: 8px 14px; max-width: 78ch; }
+:root[data-ui='comic'] .hints { color: var(--ink); }
+:root[data-ui='comic'] .hints * { color: var(--ink); }
+:root[data-ui='comic'] .field label { color: var(--ink); background: var(--pop); display: inline-block; padding: 0 10px; border: 2px solid var(--ink); transform: skewX(-6deg); }
+:root[data-ui='comic'] .check { color: var(--ink); }
+:root[data-ui='comic'] .check input { accent-color: var(--accent); width: 18px; height: 18px; }
+
+/* campi, liste a discesa, righe delle impostazioni */
+:root[data-ui='comic'] input:not([type='checkbox']), :root[data-ui='comic'] select, :root[data-ui='comic'] textarea { background: #fff; color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+:root[data-ui='comic'] .persys-row, :root[data-ui='comic'] .conrow, :root[data-ui='comic'] .savedir, :root[data-ui='comic'] .uistyle, :root[data-ui='comic'] .theme { background: #fff; color: var(--ink); border: 3px solid var(--ink); border-left: 10px solid var(--tile, var(--accent)); box-shadow: 4px 4px 0 var(--ink); }
+:root[data-ui='comic'] .uistyle, :root[data-ui='comic'] .theme { border-left-width: 3px; clip-path: none; }
+:root[data-ui='comic'] .uistyle small, :root[data-ui='comic'] .conrow-s, :root[data-ui='comic'] .persys-st { color: var(--muted); }
+:root[data-ui='comic'] .uistyle.on, :root[data-ui='comic'] .theme.on { background: var(--pop); box-shadow: 7px 7px 0 var(--ink); transform: translate(-2px,-2px); }
+:root[data-ui='comic'] .conrow code, :root[data-ui='comic'] kbd { color: var(--ink); background: var(--pop); border: 2px solid var(--ink); }
+:root[data-ui='comic'] .pbar { background: #fff; border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); }
+:root[data-ui='comic'] .pbar b { color: var(--ink); text-shadow: 1px 1px 0 #fff; }
+
+/* finestre e pannelli: vignette con ombra netta */
+:root[data-ui='comic'] .modal { background: rgba(246,237,210,.78); }
+:root[data-ui='comic'] .modal-box, :root[data-ui='comic'] .dialog { background: #fff; color: var(--ink); border: 5px solid var(--ink); box-shadow: 10px 10px 0 var(--ink); background-image: radial-gradient(circle, rgba(0,0,0,.07) 1.3px, transparent 2px); background-size: 10px 10px; }
+:root[data-ui='comic'] .modal-sub { color: var(--muted); }
+:root[data-ui='comic'] .badge { border: 2px solid var(--ink); color: var(--ink); }
+
+/* ricerca, comandi, rapporto sul PC: stesse regole di colore */
+:root[data-ui='comic'] .sp, :root[data-ui='comic'] .report, :root[data-ui='comic'] .controls { color: var(--ink); }
+:root[data-ui='comic'] .sp-initials button, :root[data-ui='comic'] .sp-row button, :root[data-ui='comic'] .sp-res, :root[data-ui='comic'] .sp-tile, :root[data-ui='comic'] .choice, :root[data-ui='comic'] .keyrow, :root[data-ui='comic'] .padbtns i { background: #fff; color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+:root[data-ui='comic'] .sp-initials button.on, :root[data-ui='comic'] .sp-row button.on, :root[data-ui='comic'] .sp-res.active, :root[data-ui='comic'] .sp-tile.active, :root[data-ui='comic'] .choice.active, :root[data-ui='comic'] .keyrow.on, :root[data-ui='comic'] .padbtns i.on { background: var(--pop); color: var(--ink); border-color: var(--ink); }
+:root[data-ui='comic'] .sp-res-group { color: var(--muted); }
+
+/* sfondo: griglia di vignette che attraversa la pagina */
+:root[data-ui='comic']::before {
+  content: ''; position: fixed; inset: 10px; z-index: 0; pointer-events: none; border: 5px solid var(--ink);
+  background:
+    linear-gradient(103deg, transparent 0 30.6%, var(--ink) 30.6% 31.2%, var(--paper) 31.2% 32.8%, var(--ink) 32.8% 33.4%, transparent 33.4%),
+    linear-gradient(103deg, transparent 0 66.6%, var(--ink) 66.6% 67.2%, var(--paper) 67.2% 68.8%, var(--ink) 68.8% 69.4%, transparent 69.4%);
+  opacity: .22;
+}
+
+/* FUMETTO: pannelli, titolo, tessere della home, finestre di dialogo */
+:root[data-ui='comic'] .card { background: #fff; color: var(--ink); border: 4px solid var(--ink); border-left: 14px solid var(--accent); box-shadow: 7px 7px 0 var(--ink); clip-path: none; background-image: radial-gradient(circle, rgba(0,0,0,.07) 1.3px, transparent 2px); background-size: 10px 10px; }
+:root[data-ui='comic'] .card h3 { display: inline-block; color: #fff; background: var(--accent); border: 3px solid var(--ink); padding: 0 14px; transform: skewX(-8deg); text-shadow: 2px 2px 0 var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+:root[data-ui='comic'] .kv { border-bottom: 2px dotted rgba(0,0,0,.35); }
+:root[data-ui='comic'] .kv span, :root[data-ui='comic'] .opt-row > span, :root[data-ui='comic'] .psum, :root[data-ui='comic'] .level-text { color: var(--muted); }
+:root[data-ui='comic'] .kv b, :root[data-ui='comic'] .pname { color: var(--ink); }
+:root[data-ui='comic'] .kv.cur b, :root[data-ui='comic'] .kv.cur span { color: var(--accent); }
+:root[data-ui='comic'] .prow { border-bottom: 2px dotted rgba(0,0,0,.3); }
+:root[data-ui='comic'] .seg button { background: #fff; color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); clip-path: none; transform: skewX(-6deg); }
+:root[data-ui='comic'] .seg button.on { background: var(--accent); color: #fff; text-shadow: 2px 2px 0 var(--ink); }
+:root[data-ui='comic'] .opt-row .state, :root[data-ui='comic'] .state { color: var(--accent); }
+
+/* schermata iniziale */
+:root[data-ui='comic'] .title { background: transparent; }
+:root[data-ui='comic'] .tt-rays { opacity: .5; background: repeating-conic-gradient(from 0deg at 50% 42%, rgba(0,0,0,.09) 0 4deg, transparent 4deg 12deg); }
+:root[data-ui='comic'] .tt-pre { color: var(--ink); background: var(--pop); border: 3px solid var(--ink); padding: 2px 16px; -webkit-text-stroke: 0; box-shadow: 4px 4px 0 var(--ink); justify-self: center; transform: skewX(-8deg); }
+:root[data-ui='comic'] .tt-mr { color: #fff; -webkit-text-stroke: 7px var(--ink); text-shadow: 8px 8px 0 var(--ink); }
+:root[data-ui='comic'] .tt-em { text-shadow: 10px 10px 0 var(--ink); animation: none; }
+:root[data-ui='comic'] .tt-start { border: 4px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); clip-path: none; transform: skewX(-8deg); }
+:root[data-ui='comic'] .tt-hint, :root[data-ui='comic'] .tt-foot, :root[data-ui='comic'] .tt-by { color: var(--ink); }
+:root[data-ui='comic'] .tt-strip { background: #fff; border-block: 5px solid var(--ink); }
+:root[data-ui='comic'] .tt-sys { text-shadow: 1px 1px 0 var(--ink); }
+
+/* home: tessere come vignette bianche con bordo di china */
+:root[data-ui='comic'] .select .tile .tile-bg { background: #fff; background-image: radial-gradient(circle, color-mix(in srgb, var(--tile) 60%, transparent) 1.4px, transparent 2.2px); background-size: 9px 9px; border: 4px solid var(--ink); clip-path: none; box-shadow: 5px 5px 0 var(--ink); }
+:root[data-ui='comic'] .select .tile .tile-halo { opacity: .55; }
+:root[data-ui='comic'] .select .tile .tile-short { -webkit-text-stroke: 1.5px var(--ink); paint-order: stroke fill; text-shadow: 2px 2px 0 var(--ink); }
+:root[data-ui='comic'] .select .tile .tile-name { color: var(--ink); font-weight: 700; }
+:root[data-ui='comic'] .select .tile.active .tile-bg { background-color: var(--pop); border-color: var(--ink); box-shadow: 8px 8px 0 var(--ink); }
+:root[data-ui='comic'] .select .tile .tile-con { filter: drop-shadow(3px 4px 0 var(--ink)); }
+:root[data-ui='comic'] .poster-count, :root[data-ui='comic'] .update-chip { color: var(--ink); }
+:root[data-ui='comic'] .comic-bg::before { opacity: .35; }
+
+/* finestre di dialogo (continua / nuova partita) e riquadro dei salvataggi */
+:root[data-ui='comic'] .rd-back { background: rgba(246,237,210,.8); }
+:root[data-ui='comic'] .rd { background: #fff; color: var(--ink); border: 6px solid var(--ink); box-shadow: 12px 12px 0 var(--ink); }
+:root[data-ui='comic'] .rd-top { background: var(--accent); color: #fff; border: 3px solid var(--ink); text-shadow: 2px 2px 0 var(--ink); }
+:root[data-ui='comic'] .rd-game { color: #fff; -webkit-text-stroke: 5px var(--ink); text-shadow: 4px 4px 0 var(--ink); }
+:root[data-ui='comic'] .rd-sys, :root[data-ui='comic'] .rd-hint, :root[data-ui='comic'] .rd-btn small { color: var(--muted); }
+:root[data-ui='comic'] .rd-btn { background: #fff; color: var(--ink); border: 4px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); clip-path: none; }
+:root[data-ui='comic'] .rd-btn.on { background: var(--pop); border-color: var(--ink); box-shadow: 8px 8px 0 var(--ink); }
+:root[data-ui='comic'] .rd-btn.on small { color: var(--ink); }
+:root[data-ui='comic'] .savebox-h { color: var(--ink); }
+:root[data-ui='comic'] .savebox-seg button { background: #fff; color: var(--ink); border: 3px solid var(--ink); clip-path: none; }
+:root[data-ui='comic'] .savebox-seg button.on { background: var(--accent); color: #fff; }
+:root[data-ui='comic'] .preview-card .sp-star, :root[data-ui='comic'] .preview-card .chip { background: var(--pop); color: var(--ink); }
+:root[data-ui='comic'] .tt-strip { margin-top: 14px; }
+:root[data-ui='comic'] .tt-hint { position: relative; z-index: 2; }
