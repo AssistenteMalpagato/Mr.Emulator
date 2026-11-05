@@ -1,18 +1,20 @@
 import { resolveOverlay } from './overlays'
-import { existsSync, readdirSync } from 'fs'
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
-import type { BrowserWindow } from 'electron'
+import { app, type BrowserWindow } from 'electron'
 import type {
   HardwareReport,
   OptimizationReport,
   PerfLevel,
   ScreenInfo,
   Settings,
+  SharpnessInfo,
   SystemDef,
   SystemProfile
 } from '@shared/types'
 import { SYSTEMS } from './systems'
-import { buildMameProfile, buildProfile, type MameProfile, type Profile } from './profiles'
+import { buildMameProfile, buildProfile, sharpnessAllowed, type MameProfile, type Profile } from './profiles'
+import { combinePresetFiles } from './shaderchain'
 import { currentScreen } from './hardware'
 import { LEVEL_LABEL, shiftLevel } from './tiers'
 import { mt } from './mt'
@@ -35,6 +37,35 @@ function findShaders(retroarchPath: string): { dir: string | null; names: Set<st
   }
 }
 
+/** Shader di nitidezza installati (percorsi dei .slangp): cartelle nuove e vecchie del repository degli shader di libretro */
+export function findUpscalers(retroarchPath: string): { soft: string | null; high: string | null } {
+  if (!retroarchPath) return { soft: null, high: null }
+  const base = join(dirname(retroarchPath), 'shaders', 'shaders_slang')
+  const first = (rel: string[]): string | null => {
+    for (const r of rel) {
+      const f = join(base, r)
+      if (existsSync(f)) return f.replace(/\\/g, '/')
+    }
+    return null
+  }
+  return {
+    soft: first(['pixel-art-scaling/sharp-bilinear.slangp', 'interpolation/sharp-bilinear.slangp']),
+    high: first(['edge-smoothing/xbrz/xbrz-freescale.slangp', 'xbrz/xbrz-freescale.slangp'])
+  }
+}
+
+/** Cosa permette questo PC (valutato su un sistema leggero) e cosa c'è installato */
+export function sharpnessInfo(s: Settings, hw: HardwareReport): SharpnessInfo {
+  const level = baseLevel(hw, s)
+  const ups = findUpscalers(s.retroarchPath)
+  return {
+    soft: sharpnessAllowed('soft', { level, gpuTier: hw.gpuTier, cost: 'light' }),
+    high: sharpnessAllowed('high', { level, gpuTier: hw.gpuTier, cost: 'light' }),
+    installed: { soft: !!ups.soft, high: !!ups.high },
+    retroarch: !!s.retroarchPath && existsSync(s.retroarchPath)
+  }
+}
+
 /** Indice (da 1) del monitor da usare in RetroArch; 0 = lascia decidere a RetroArch */
 function monitorIndexFor(s: Settings, screens: ScreenInfo[], current: ScreenInfo): number {
   if (s.gameMonitor > 0) return s.gameMonitor
@@ -53,21 +84,38 @@ export function profileFor(
   const delta = s.autoTune ? (s.tuning[system.id] ?? 0) : 0
   const level = shiftLevel(baseLevel(hw, s), delta)
   const shaders = findShaders(s.retroarchPath)
+  const imageStyle = s.imageBySystem?.[system.id] ?? s.imageStyle
   const profile = buildProfile({
     level,
     cost: system.cost,
     cpuTier: hw.cpu.tier,
     gpuTier: hw.gpuTier,
     display: { width: cur.width, height: cur.height, hz: cur.hz },
-    imageStyle: s.imageBySystem?.[system.id] ?? s.imageStyle,
+    imageStyle,
     fullscreen: s.fullscreen,
     biosDir: s.biosDir,
     shaderDir: shaders.dir,
     shadersAvailable: shaders.names,
     monitorIndex: monitorIndexFor(s, hw.screens, cur),
     crtChoice: s.crtShader,
-    overlay: s.overlayEnabled ? resolveOverlay(s, system.id) : undefined
+    sharpness: s.sharpness,
+    upscalers: findUpscalers(s.retroarchPath),
+    // a tutto schermo (stirato) il bordo grafico coprirebbe i lati dell'immagine: si spegne
+    overlay: s.overlayEnabled ? (imageStyle === 'stretch' ? null : resolveOverlay(s, system.id)) : undefined
   })
+  // nitidezza + CRT: RetroArch applica un solo preset, quindi i due si uniscono in uno
+  if (profile.presets.length > 1) {
+    const text = combinePresetFiles(profile.presets)
+    if (text) {
+      const out = join(app.getPath('userData'), 'shader-combo.slangp').replace(/\\/g, '/')
+      mkdirSync(dirname(out), { recursive: true })
+      writeFileSync(out, text, 'utf-8')
+      profile.config['video_shader'] = out
+    } else {
+      // un file del preset non si legge: resta il solo CRT
+      profile.config['video_shader'] = profile.presets[profile.presets.length - 1]
+    }
+  }
   return { profile, level, delta }
 }
 

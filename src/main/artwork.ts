@@ -1,4 +1,4 @@
-import { app } from 'electron'
+import { app, nativeImage } from 'electron'
 import { join, resolve, parse, sep } from 'path'
 import { writeFileAtomic } from './atomic'
 import { loadIndex, makeMatcher, type TitleMatcher } from './thumbIndex'
@@ -24,7 +24,37 @@ const SOURCES = [
 const KIND_DIR: Record<ArtKind, string> = { boxart: 'Named_Boxarts', snap: 'Named_Snaps', title: 'Named_Titles' }
 
 export const ART_SCHEME = 'mrart'
-export const artRoot = (): string => join(app.getPath('userData'), 'artwork')
+/** Cartella scelta dall'utente per la cache delle immagini (vuota = dentro i dati del programma) */
+let rootOverride = ''
+export const setArtRoot = (dir: string): void => {
+  rootOverride = dir
+}
+export const artRoot = (): string => rootOverride || join(app.getPath('userData'), 'artwork')
+
+/** Immagini dei pacchetti Multimedia usate dove stanno (niente copie nella cache): codice -> percorso, solo per i file indicizzati */
+const localFiles = new Map<string, string>()
+const localToken = (file: string): string => {
+  let h = 5381
+  for (let i = 0; i < file.length; i++) h = ((h * 33) ^ file.charCodeAt(i)) >>> 0
+  const token = `${h.toString(36)}${file.length.toString(36)}`
+  localFiles.set(token, file)
+  return token
+}
+
+/** Riduce un'immagine scaricata (lato massimo 640 px, JPEG): da centinaia di KB a poche decine, senza differenze visibili in lista */
+export function compressImage(data: Buffer): Buffer {
+  try {
+    const img = nativeImage.createFromBuffer(data)
+    if (img.isEmpty()) return data
+    const { width, height } = img.getSize()
+    const big = Math.max(width, height)
+    const scaled = big > 640 ? img.resize(width >= height ? { width: 640 } : { height: 640 }) : img
+    const out = scaled.toJPEG(85)
+    return out.length > 0 && out.length < data.length ? out : data
+  } catch {
+    return data
+  }
+}
 
 /** Libretro sostituisce questi caratteri con "_" nei nomi dei file */
 const clean = (s: string): string => s.replace(/[&*/:`<>?\\|"]/g, '_')
@@ -54,10 +84,47 @@ export function clearLocalArt(): void {
 
 /** Quante copertine di gioco sono già scaricate per un sistema */
 export function coverCount(systemId: string): number {
+  // scaricate (Named_Boxarts) + estratte da pacchetti ZIP (local_boxart)
+  let n = 0
+  for (const dir of [KIND_DIR.boxart, 'local_boxart']) {
+    try {
+      n += readdirSync(join(artRoot(), systemId, dir)).filter((f) => f.endsWith('.png')).length
+    } catch {
+      // cartella assente: nessuna
+    }
+  }
+  return n
+}
+
+/** Giochi per cui si è già cercato e online non c'è la copertina (non si riprova a ogni apertura) */
+export function coverMisses(systemId: string): number {
   try {
-    return readdirSync(join(artRoot(), systemId, 'boxart')).filter((f) => f.endsWith('.png')).length
+    return readdirSync(join(artRoot(), systemId)).filter((f) => f.endsWith('.boxart.v5.miss')).length
   } catch {
     return 0
+  }
+}
+
+/** Risultato dell'ultima ricerca completa per sistema (copertine trovate anche tra le immagini dei pacchetti usate sul posto) */
+export interface CoverRun {
+  found: number
+  total: number
+  at: number
+}
+const runsFile = (): string => join(artRoot(), '_covers-status.json')
+export function readCoverRuns(): Record<string, CoverRun> {
+  try {
+    return JSON.parse(readFileSync(runsFile(), 'utf-8')) as Record<string, CoverRun>
+  } catch {
+    return {}
+  }
+}
+export function saveCoverRun(systemId: string, run: CoverRun): void {
+  try {
+    mkdirSync(artRoot(), { recursive: true })
+    writeFileAtomic(runsFile(), JSON.stringify({ ...readCoverRuns(), [systemId]: run }))
+  } catch {
+    // il riepilogo è un extra
   }
 }
 
@@ -160,6 +227,10 @@ export function resolveArtUrl(url: string): string | null {
   const u = new URL(url)
   const [systemId, kind, file] = u.pathname.split('/').filter(Boolean).map(decodeURIComponent)
   if (!systemId || !kind || !file) return null
+  if (systemId === '_local') {
+    const f = localFiles.get(file.replace(/\.png$/, ''))
+    return f && existsSync(f) ? f : null
+  }
   const root = resolve(artRoot())
   const full = resolve(root, systemId, kind, file)
   return full.startsWith(root + sep) && existsSync(full) ? full : null
@@ -217,11 +288,13 @@ async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem:
     const parent = system.titleSource === 'mame' && mameProvider ? (await mameProvider())?.parentOf(stem.toLowerCase()) : undefined
     const hit = await media.find(kind, [stem.toLowerCase(), parent ?? ''])
     if (hit) {
-      const dest = localPath(system.id, `local_${kind}`, stem)
       try {
+        // file su disco: si usa dove sta (nessuna copia); dentro uno ZIP: si estrae una volta, compressa
+        if (hit.file) return `${ART_SCHEME}://art/_local/x/${localToken(hit.file)}.png`
+        const dest = localPath(system.id, `local_${kind}`, stem)
         if (!existsSync(dest)) {
           mkdirSync(join(dest, '..'), { recursive: true })
-          writeFileSync(dest, await hit.read())
+          writeFileSync(dest, compressImage(await hit.read()))
         }
         return toUrl(system.id, `local_${kind}`, stem)
       } catch {
@@ -296,7 +369,7 @@ async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem:
         const saveAs = names[0] ?? n
         const file = localPath(system.id, dir, saveAs)
         mkdirSync(join(file, '..'), { recursive: true })
-        writeFileAtomic(file, res.data)
+        writeFileAtomic(file, compressImage(res.data))
         return toUrl(system.id, dir, saveAs)
       }
     }

@@ -16,7 +16,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![Cost](https://img.shields.io/badge/cost-%E2%82%AC0%20forever-red?style=flat-square)
 
-**English** · [Italiano](README.it.md)
+**English** · [Italiano](README.it.md) · 📖 **[Wiki](docs/wiki/Home.md)**
 
 <img src="docs/img/title.png" width="720" alt="Mr. Emulator title screen">
 
@@ -64,6 +64,7 @@ A fast, flashy launcher for arcade and classic console games, built for people w
 - 🕹️ **Controls**: keyboard, gamepad and arcade-panel presets, **manual button mapping** for two players (covers non-Xbox pads such as PS3 clones: L1/R1/L2/R2/L3/R3, hat D-pads, analog triggers), conflict detection, and a live "Controls" test screen.
 - 🚪 **Exit and game menu without a keyboard**: Select + Start on a gamepad, Coin + Start on an arcade panel (configurable).
 - 🖥️ **Screen**: four image modes (full height, pixel perfect, pixel perfect in height, stretched) with a live preview on your real screen, per-system overrides, vertical-monitor mode for MAME, **borders (overlays)** picked automatically per system, and **CRT shaders**.
+- ✨ **Pixel sharpness** (Soft or High quality xBRZ, combinable with CRT): offered only when the PC can handle it.
 - ⚡ **Auto-tuning**: detects your PC and screens, picks a Light / Balanced / Max profile per system, uses the powerful GPU on dual-GPU laptops, and adapts after the question "how did it go?".
 - 🏠 **Cabinet mode**: start with Windows, borderless full screen, hidden cursor, protected exit.
 
@@ -137,7 +138,7 @@ npm test           # automated tests
 npm run dist       # Windows installer (run on Windows) → release\
 ```
 
-The installer is also built on GitHub (free Windows runner): **Actions → Installer for Windows → Run workflow**. Tick **"Publish a GitHub Release"** to publish it in *Releases* (this is what powers the download button), or push a tag such as `v0.2.2`.
+The installer is also built on GitHub (free Windows runner): **Actions → Installer for Windows → Run workflow**. Tick **"Publish a GitHub Release"** to publish it in *Releases* (this is what powers the download button), or push a tag such as `v0.2.13`.
 
 Roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md).
 

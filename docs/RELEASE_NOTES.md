@@ -1,3 +1,82 @@
+## Mr. Emulator 0.2.13
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 📖 **Wiki** in English and Italian (`docs/wiki`): getting started, every feature, systems and BIOS, controls, screen quality, saves/trophies/cheats, covers and cache, auto-tuning, an honest comparison with other launchers, troubleshooting, privacy and internals.
+- 🛠️ **Fixed**: the on-screen search keyboard kept Italian labels (SPAZIO, CANCELLA, AZZERA) in English.
+
+## Mr. Emulator 0.2.12
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🖼️ **Covers, redesigned** (Settings → Covers): summary of covers found out of your games, a card per system with a progress bar, how many are not available online, how many are left, date of the last full search, **"Find covers for incomplete systems"** (one system after the other) and "Check again".
+- 📁 **Choose the console photos folder** (Settings → Look): read the photos from any folder you like.
+- 🛠️ **Fixed**: after choosing the borders folder (Screen), automatic matching was never shown; it now shows how many systems were matched.
+- 🎨 **Comic style**: the red/yellow/green status flags in Diagnostics and in the first-run guide are readable now.
+- 🧪 Test runner: `node` is no longer started through the shell (the path `C:\Program Files\nodejs` was split at the space); only `npx` uses it.
+
+## Mr. Emulator 0.2.11
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 📁 **Console photos move with the cache**: when you choose another folder for the cache (Settings → Covers), the folder with your console photos goes there too, so everything lives on the same drive.
+
+## Mr. Emulator 0.2.10
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🛠️ **Fixed**: Settings → Covers always said "none yet" for every system (it looked in the wrong folder). It now counts the covers you really have.
+
+## Mr. Emulator 0.2.9
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 💾 **Image cache under control** (Settings → Covers): shows how much space it uses, **choose where to keep it** (e.g. another drive) and **move** the existing images there, **compress** the images already downloaded, remove the copies of your Multimedia packs, empty everything, or set a **size limit**.
+- 🛠️ **Much smaller cache**: images from your Multimedia packs are no longer copied into the cache (they are used where they are), and downloaded covers are stored resized (max 640 px) and compressed.
+
+## Mr. Emulator 0.2.8
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- ✨ **Pixel sharpness**: with the CRT effect on *Automatic*, sharpness now takes priority (the CRT lines were hiding it). Pick a CRT by hand to have both.
+- 🩺 Diagnostics shows RetroArch's shader messages and the merged shader preset.
+
+## Mr. Emulator 0.2.7
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🩺 **Diagnostics** now shows the pixel-sharpness choice, which shaders were found in RetroArch, and the shader requested at the last game.
+
+## Mr. Emulator 0.2.6
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🛠️ **Fixed**: after playing in *Full screen (stretched)*, other image modes kept showing the stretched picture. RetroArch remembered the last aspect ratio on exit; the program now always sets it (and stops RetroArch from saving its own config on exit).
+
+## Mr. Emulator 0.2.5
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- ✨ **Pixel sharpness** (Settings → Screen): Soft (sharp-bilinear) or High quality (xBRZ), usable together with the CRT effect. An option is offered only if this PC can handle it and the shader is installed; heavy systems step down automatically.
+- 🛠️ **Fixed**: with *Full screen (stretched)* the graphic border covered the sides of the picture, so the game still looked "full height". The border is now turned off in that mode (Diagnostics shows it).
+
+## Mr. Emulator 0.2.3
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🩺 **Diagnostics** now shows the image settings requested from RetroArch and MAME at the last game (to track the screen-mode problem).
+- ⚡ Smoother screen changes: no full-screen blur or colour blending on the backdrop, animated layers moved to the GPU.
+
 ## Mr. Emulator 0.2.2
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.

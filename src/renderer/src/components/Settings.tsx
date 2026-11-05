@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { IMAGE_MODES } from './ScreenPreview'
 import { markConsoleImagesDirty, refreshConsoleArt } from '../consoleArt'
 import { SVG_FOR } from './consoleSvgs'
-import type { ArtBulkState, DiagnosticReport, ImageStyle, PickKind, Settings, SystemInfo } from '@shared/types'
+import type { ArtBulkState, CacheStats, CoverCount, DiagnosticReport, ImageStyle, PickKind, Settings, SharpnessInfo, SystemInfo } from '@shared/types'
 import { ToolFinder } from './ToolFinder'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
 import { getLang, setLang, t } from '../i18n'
 
-type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath' | 'overlayDir' | 'savesDir'
+type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath' | 'overlayDir' | 'savesDir' | 'cacheDir' | 'consoleImagesPath'
 
 interface Props {
   onClose: () => void
@@ -28,10 +28,41 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   const [diag, setDiag] = useState<DiagnosticReport | null>(null)
   const [copied, setCopied] = useState(false)
   const [all, setAll] = useState<SystemInfo[]>([])
+  const [sharp, setSharp] = useState<SharpnessInfo | null>(null)
+  const [cache, setCache] = useState<CacheStats | null>(null)
+  const [cachePct, setCachePct] = useState<number | null>(null)
+  const [cacheMsg, setCacheMsg] = useState('')
+  useEffect(() => window.mr.onCacheProgress(setCachePct), [])
+  const loadCache = (): void => {
+    window.mr.getCacheStats().then((c) => setCache(c ?? null), () => undefined)
+  }
+  const mb = (b: number): string => (b >= 1073741824 ? `${(b / 1073741824).toFixed(1)} GB` : `${Math.round(b / 1048576)} MB`)
+  const runCache = async (label: string, job: () => Promise<string>): Promise<void> => {
+    setCachePct(0)
+    setCacheMsg(label)
+    const msg = await job()
+    setCachePct(null)
+    setCacheMsg(msg)
+    loadCache()
+  }
   const [cheatMsg, setCheatMsg] = useState('')
   const [cheatPct, setCheatPct] = useState<number | null>(null)
   useEffect(() => window.mr.onCheatsProgress(setCheatPct), [])
-  const [covers, setCovers] = useState<Record<string, { have: number; total: number }>>({})
+  const [covers, setCovers] = useState<Record<string, CoverCount>>({})
+  const [queue, setQueue] = useState<string[]>([])
+  const queueRef = useRef<string[]>([])
+  const [covMsg, setCovMsg] = useState('')
+  // ricerca "tutti": un sistema alla volta, in coda
+  const startNext = async (): Promise<void> => {
+    const id = queueRef.current[0]
+    if (!id) return
+    const r = await window.mr.startArtBulk(id)
+    if (r && !r.ok) {
+      queueRef.current = []
+      setQueue([])
+      setCovMsg(r.error ?? '')
+    }
+  }
   const loadCovers = (): void => {
     window.mr.getCoverCounts().then((c) => setCovers(c ?? {}), () => undefined)
   }
@@ -40,7 +71,14 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
     () =>
       window.mr.onArtBulk((b) => {
         setBulk((o) => ({ ...o, [b.systemId]: b }))
-        if (!b.running) loadCovers()
+        if (!b.running) {
+          loadCovers()
+          if (queueRef.current[0] === b.systemId) {
+            queueRef.current = queueRef.current.slice(1)
+            setQueue(queueRef.current)
+            void startNext()
+          }
+        }
       }),
     [] // eslint-disable-line react-hooks/exhaustive-deps
   )
@@ -66,7 +104,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   // bordi trovati da soli nella cartella indicata (si aggiornano quando cambia la cartella)
   const ovDir = s?.overlayDir ?? ''
   useEffect(() => {
-    if (tab !== 'look' || !ovDir) {
+    if (tab !== 'screen' || !ovDir) {
       setOvFound({})
       return
     }
@@ -76,7 +114,11 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
 
   // scheda Aspetto: quali console hanno già una foto nella cartella delle immagini
   useEffect(() => {
-    if (tab === 'covers') loadCovers()
+    if (tab === 'covers') {
+      loadCovers()
+      loadCache()
+    }
+    if (tab === 'screen') window.mr.getSharpnessInfo().then((i) => setSharp(i ?? null), () => undefined)
     if (tab === 'look') window.mr.listConsoleImages().then(setConImgs, () => undefined)
   }, [tab])
 
@@ -94,6 +136,8 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
 
   const save = async (): Promise<void> => {
     await window.mr.saveSettings(s)
+    // se è cambiata la cartella delle foto delle console, la home le rilegge
+    refreshConsoleArt()
     setSaved(true)
     onSaved()
     setTimeout(() => setSaved(false), 1800)
@@ -250,6 +294,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
             </div>
             <h3 className="sub-h">{t('Immagini delle console')}</h3>
             <p className="hint">{t('Ogni sistema mostra la sua console. Se metti nella cartella una foto (PNG, JPG o WEBP) con il nome del sistema, per esempio snes.png, il programma la usa e la trasforma in stile fumetto. Dove non c\'è una foto usa un\'illustrazione, o un simbolo.')}</p>
+            {field('Cartella delle foto delle console', 'Vuota = quella standard (vicino alla cache). Scegli una cartella tua con snes.png, psx.png…', 'consoleImagesPath', 'dir')}
             <label className="check">
               <input type="checkbox" checked={s.stylizePhotos} onChange={(e) => setS({ ...s, stylizePhotos: e.target.checked })} />
               {t('Trasforma le foto in stile fumetto (sfondo tolto, colori vivi, contorno nero)')}
@@ -315,34 +360,172 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           <input type="checkbox" checked={s.autoCovers} onChange={(e) => setS({ ...s, autoCovers: e.target.checked })} />
           {t('Quando apro un sistema, scarica da sola le copertine di tutti i suoi giochi (usa più dati)')}
         </label>
-            <h3 className="sub-h">{t('Cerca le copertine di un sistema')}</h3>
-            <div className="persys">
-              {all.filter((x) => x.phase === 1 && x.thumbs).map((x) => {
-                const b = bulk[x.id]
+            <h3 className="sub-h">{t('Copertine per sistema')}</h3>
+            {(() => {
+              const n = (v: number): string => v.toLocaleString(getLang() === 'it' ? 'it' : 'en')
+              const list = all.filter((x) => x.phase === 1 && x.thumbs)
+              const info = (x: SystemInfo): { total: number; done: number; missing: number; handled: number; pct: number; state: 'empty' | 'running' | 'complete' | 'partial' | 'none'; at: number | null } => {
                 const c = covers[x.id]
-                const n = (v: number): string => v.toLocaleString(getLang() === 'it' ? 'it' : 'en')
-                const status = b?.running
-                  ? `${n(b.done)}/${n(b.total)}`
-                  : c && c.total > 0
-                    ? c.have >= c.total * 0.95
-                      ? t('✔ completa: {h}/{n}', { h: n(c.have), n: n(c.total) })
-                      : c.have > 0
-                        ? t('{h} di {n} presenti', { h: n(c.have), n: n(c.total) })
-                        : t('nessuna ancora ({n} giochi)', { n: n(c.total) })
-                    : ''
-                return (
-                  <div key={x.id} className="persys-row" style={{ ['--tile' as string]: x.color }}>
-                    <span className="persys-n">{x.name}</span>
-                    <span className="persys-st">
-                      {status}
-                    </span>
-                    <button className={`chip ${b?.running ? 'on' : ''}`} onClick={() => (b?.running ? window.mr.cancelArtBulk() : window.mr.startArtBulk(x.id))}>
-                      {b?.running ? t('FERMA') : t('🖼 CERCA COPERTINE')}
-                    </button>
+                const b = bulk[x.id]
+                const total = c?.total ?? 0
+                const done = Math.max(c?.have ?? 0, c?.last?.found ?? 0)
+                const missing = c?.missing ?? 0
+                const handled = Math.min(total, done + missing)
+                const pct = total ? Math.round((handled / total) * 100) : 0
+                const state = b?.running ? 'running' : total === 0 ? 'empty' : handled >= total * 0.98 ? 'complete' : handled > 0 ? 'partial' : 'none'
+                return { total, done, missing, handled, pct, state, at: c?.last?.at ?? null }
+              }
+              const rows = list.map((x) => ({ x, i: info(x) }))
+              const sumDone = rows.reduce((a, r) => a + Math.min(r.i.done, r.i.total), 0)
+              const sumTotal = rows.reduce((a, r) => a + r.i.total, 0)
+              const complete = rows.filter((r) => r.i.state === 'complete').length
+              const busy = queue.length > 0 || rows.some((r) => r.i.state === 'running')
+              const runAll = async (): Promise<void> => {
+                let ids = rows.filter((r) => r.i.total > 0 && r.i.state !== 'complete').map((r) => r.x.id)
+                if (!ids.length) ids = rows.filter((r) => r.i.total > 0).map((r) => r.x.id)
+                queueRef.current = ids
+                setQueue(ids)
+                setCovMsg('')
+                await startNext()
+              }
+              const stopAll = (): void => {
+                queueRef.current = []
+                setQueue([])
+                void window.mr.cancelArtBulk()
+              }
+              return (
+                <>
+                  <div className="cov-sum">
+                    <div>
+                      <b>{n(sumDone)}</b> {t('copertine su')} <b>{n(sumTotal)}</b> {t('giochi')} · {t('{c} sistemi completi su {m}', { c: complete, m: rows.filter((r) => r.i.total > 0).length })}
+                    </div>
+                    <div className="cov-bar total"><i style={{ width: `${sumTotal ? Math.round((sumDone / sumTotal) * 100) : 0}%` }} /></div>
+                    <div className="field-row">
+                      {busy ? (
+                        <button className="chip on" onClick={stopAll}>{t('FERMA TUTTO')}</button>
+                      ) : (
+                        <button className="chip" onClick={runAll}>{t('🖼 CERCA I SISTEMI INCOMPLETI')}</button>
+                      )}
+                      {queue.length > 1 && <span className="persys-st">{t('in coda: {n} sistemi', { n: queue.length - 1 })}</span>}
+                      {covMsg && <span className="persys-st">{covMsg}</span>}
+                    </div>
                   </div>
-                )
-              })}
+                  <div className="cov-grid">
+                    {rows.map(({ x, i }) => {
+                      const b = bulk[x.id]
+                      const text =
+                        i.state === 'running'
+                          ? t('Cerco… {d}/{n}', { d: n(b?.done ?? 0), n: n(b?.total ?? i.total) })
+                          : i.state === 'complete'
+                            ? t('✔ {d} copertine · {m} non disponibili online', { d: n(i.done), m: n(i.missing) })
+                            : i.state === 'partial'
+                              ? t('{d} trovate · {m} non disponibili · restano {r}', { d: n(i.done), m: n(i.missing), r: n(i.total - i.handled) })
+                              : i.state === 'none'
+                                ? t('da cercare ({n} giochi)', { n: n(i.total) })
+                                : t('nessun gioco in questa cartella')
+                      const pct = i.state === 'running' && b?.total ? Math.round((b.done / b.total) * 100) : i.pct
+                      return (
+                        <div key={x.id} className={`cov ${i.state}`} style={{ ['--tile' as string]: x.color }}>
+                          <div className="cov-head">
+                            <span className="cov-name">{x.name}</span>
+                            <span className="cov-pct">{i.state === 'empty' ? '—' : `${pct}%`}</span>
+                          </div>
+                          <div className="cov-bar"><i style={{ width: `${pct}%` }} /></div>
+                          <div className="cov-foot">
+                            <span className="cov-text">{text}</span>
+                            {i.at && i.state === 'complete' && <span className="cov-date">{new Date(i.at).toLocaleDateString(getLang() === 'it' ? 'it' : 'en')}</span>}
+                            <button
+                              className={`chip ${i.state === 'running' ? 'on' : ''}`}
+                              disabled={i.state === 'empty'}
+                              onClick={() => {
+                                if (i.state === 'running') stopAll()
+                                else void window.mr.startArtBulk(x.id).then((r) => r && !r.ok && setCovMsg(r.error ?? ''))
+                              }}
+                            >
+                              {i.state === 'running' ? t('FERMA') : i.state === 'complete' ? t('🔄 RICONTROLLA') : t('🖼 CERCA')}
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              )
+            })()}
+            <h3 className="sub-h">{t('Spazio occupato dalle immagini')}</h3>
+            <p className="hint">
+              {cache
+                ? t('{t} in totale · {d} di copertine e immagini scaricate · {l} di copie dei tuoi pacchetti Multimedia ({n} file)', { t: mb(cache.total), d: mb(cache.downloaded), l: mb(cache.localCopies), n: cache.files.toLocaleString(getLang() === 'it' ? 'it' : 'en') })
+                : t('Calcolo…')}
+              {cache ? ` — ${cache.dir}` : ''}
+            </p>
+            <div className="field-row">
+              <button
+                className="chip"
+                disabled={cachePct !== null}
+                onClick={() =>
+                  runCache(t('Comprimo le immagini…'), async () => {
+                    const r = await window.mr.optimizeCache()
+                    return t('✔ {n} immagini compresse, {m} liberati', { n: r.files.toLocaleString(getLang() === 'it' ? 'it' : 'en'), m: mb(r.saved) })
+                  })
+                }
+              >
+                {t('⚙ OTTIMIZZA (COMPRIMI)')}
+              </button>
+              <button
+                className="chip"
+                disabled={cachePct !== null || !cache || cache.localCopies === 0}
+                onClick={() => runCache(t('Tolgo le copie…'), async () => t('✔ {n} copie tolte', { n: (await window.mr.clearCache('local')).toLocaleString(getLang() === 'it' ? 'it' : 'en') }))}
+              >
+                {t('🧹 TOGLI LE COPIE DEI PACCHETTI')}
+              </button>
+              <button
+                className="chip"
+                disabled={cachePct !== null}
+                onClick={() => {
+                  if (window.confirm(t('Cancellare tutte le copertine e le immagini scaricate? Si potranno riscaricare.'))) {
+                    void runCache(t('Cancello…'), async () => t('✔ {n} file cancellati', { n: (await window.mr.clearCache('all')).toLocaleString(getLang() === 'it' ? 'it' : 'en') }))
+                  }
+                }}
+              >
+                {t('🗑 SVUOTA TUTTO')}
+              </button>
+              {cachePct !== null && <button className="chip on" onClick={() => window.mr.cancelCacheJob()}>{t('FERMA')}</button>}
             </div>
+            {cachePct !== null && (
+              <div className="pbar" role="progressbar" aria-valuenow={cachePct}>
+                <i style={{ width: `${cachePct}%` }} />
+                <b>{cachePct}%</b>
+              </div>
+            )}
+            {cacheMsg && cachePct === null && <p className="persys-st">{cacheMsg}</p>}
+            <h3 className="sub-h">{t('Dove tenere la cache')}</h3>
+            <p className="hint">{t('Per non occupare il disco C: scegli una cartella su un altro disco. Dentro si crea «MrEmulator-artwork». Con SPOSTA le immagini già scaricate e le foto delle console vengono portate lì (se è un altro disco può richiedere qualche minuto).')}</p>
+            {field('Cartella della cache', 'Vuota = nei dati del programma (disco C:)', 'cacheDir', 'dir')}
+            <div className="field-row">
+              <button
+                className="chip"
+                disabled={cachePct !== null}
+                onClick={() =>
+                  runCache(t('Sposto la cache…'), async () => {
+                    const r = await window.mr.moveCache(s.cacheDir)
+                    return r.ok ? t('✔ Cache spostata') : t('✘ {e}', { e: r.error ?? '' })
+                  })
+                }
+              >
+                {t('➡ SPOSTA LA CACHE QUI')}
+              </button>
+            </div>
+            <div className="field">
+              <label>{t('Limite di spazio')}</label>
+              <select value={String(s.cacheMaxGb ?? 0)} onChange={(e) => setS({ ...s, cacheMaxGb: Number(e.target.value) })}>
+                <option value="0">{t('Nessun limite')}</option>
+                {[1, 2, 5, 10, 20].map((g) => (
+                  <option key={g} value={g}>{t('Al massimo {g} GB (si tolgono le immagini più vecchie)', { g })}</option>
+                ))}
+              </select>
+            </div>
+            <p className="hint">{t('Ricorda di premere SALVA per il limite di spazio.')}</p>
           </div>
         ) : tab === 'extras' ? (
           <div className="sysopts">
@@ -434,6 +617,15 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
               {t('Riempi le strisce laterali con un bordo grafico')}
             </label>
             {field('Cartella dei bordi (.cfg)', 'Cartella con i bordi scaricati (si cerca anche nelle sottocartelle): per ogni sistema il programma sceglie da solo il file giusto', 'overlayDir', 'dir')}
+            {s.overlayDir && (
+              <p className="persys-st">
+                {t('Bordi abbinati da soli: {n} sistemi su {m}', {
+                  n: all.filter((x) => x.phase === 1 && x.core && ovFound[x.id]).length,
+                  m: all.filter((x) => x.phase === 1 && x.core).length
+                })}
+                {!s.overlayEnabled ? ` — ${t('ricorda di attivare «Riempi le strisce laterali con un bordo grafico» e di premere SALVA')}` : ''}
+              </p>
+            )}
             {field('Bordo comune a tutti gli altri sistemi (facoltativo)', 'Usato dai sistemi per cui non si trova un bordo', 'overlayPath', 'cfg')}
             <h3 className="sub-h">{t('Bordo per ogni sistema')}</h3>
             <div className="persys">
@@ -468,6 +660,24 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
                 )
               })}
             </div>
+            <h3 className="sub-h">{t('Nitidezza dei pixel (RetroArch)')}</h3>
+            <div className="field">
+              <select value={s.sharpness ?? 'off'} onChange={(e) => setS({ ...s, sharpness: e.target.value as Settings['sharpness'] })}>
+                <option value="off">{t('Nessuna (pixel come sono)')}</option>
+                <option value="soft" disabled={!!sharp && (!sharp.soft.ok || !sharp.installed.soft)}>
+                  {t('Morbida (bordi dei pixel più dolci, leggerissima)')}
+                  {sharp && !sharp.soft.ok ? ` — ${t(sharp.soft.reason)}` : sharp && !sharp.installed.soft ? ` — ${t('shader non installato')}` : ''}
+                </option>
+                <option value="high" disabled={!!sharp && (!sharp.high.ok || !sharp.installed.high)}>
+                  {t('Alta qualità (xBRZ: linee pulite, richiede una buona scheda video)')}
+                  {sharp && !sharp.high.ok ? ` — ${t(sharp.high.reason)}` : sharp && !sharp.installed.high ? ` — ${t('shader non installato')}` : ''}
+                </option>
+              </select>
+            </div>
+            <p className="hint">
+              {t('Migliora l\'aspetto dei pixel ingranditi. Le opzioni compaiono solo se questo PC le regge e se gli shader sono installati (RetroArch → Aggiornamenti online → Aggiorna shader Slang). Con l\'effetto CRT su Automatico la nitidezza ha la precedenza; scegli un CRT a mano per averli insieme. Se un sistema è troppo pesante, il programma sceglie da solo un gradino più leggero. Vale per i giochi lanciati con RetroArch, non per MAME.')}
+              {sharp && !sharp.retroarch ? ` ${t('Indica prima retroarch.exe nelle Impostazioni')}.` : ''}
+            </p>
             <h3 className="sub-h">{t('Effetto schermo a tubo (CRT) nei giochi')}</h3>
             <div className="field">
               <select value={s.crtShader} onChange={(e) => setS({ ...s, crtShader: e.target.value as Settings['crtShader'] })}>

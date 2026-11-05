@@ -16,12 +16,13 @@ import { launchGame } from './launcher'
 import { platform } from './platform'
 import { ensureFolders } from './folders'
 import { detectHardware } from './hardware'
-import { buildReport, mameProfileFor, profileFor } from './optimize'
+import { buildReport, mameProfileFor, profileFor, sharpnessInfo } from './optimize'
 import { toConfigText } from './profiles'
 import { setHighPerformanceGpu } from './gpuPref'
 import { buildInputConfig, buildInputMap, buildMameCtrlr, presetControls } from './inputs'
-import { ART_SCHEME, arcadeTitles, clearArtMisses, clearLocalArt, coverCount, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
+import { ART_SCHEME, artRoot, setArtRoot, arcadeTitles, clearArtMisses, clearLocalArt, coverCount, coverMisses, readCoverRuns, saveCoverRun, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
 import { MediaSource } from './media'
+import { cacheStats, clearImages, clearLocalCopies, mergeDir, moveCache, optimizeCache, pruneCache } from './cache'
 import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
@@ -424,6 +425,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('settings:save', (_e, s: Settings) => {
     const before = loadSettings()
     const saved = saveSettings(s)
+    applyCacheDir(saved)
     void applyGpuPreference(saved)
     try {
       ensureFolders(saved) // se la cartella indicata non ha le sottocartelle, le crea
@@ -643,6 +645,8 @@ app.whenReady().then(async () => {
       }
     }
     void Promise.all(Array.from({ length: 6 }, worker)).finally(() => {
+      // ricerca arrivata in fondo: si ricorda quante ne ha trovate (anche quelle prese dai pacchetti sul posto)
+      if (!job.cancel) saveCoverRun(systemId, { found: st.found, total: st.total, at: Date.now() })
       st.running = false
       bulk = null
       emit(true)
@@ -718,14 +722,18 @@ app.whenReady().then(async () => {
     }
   }
   void runUpdateCheck()
-  // foto delle console messe dall'utente in <dati del programma>\consoles
+  // foto delle console messe dall'utente: <dati del programma>\consoles, oppure dentro la cartella della cache se è stata spostata
+  const consolesDir = (): string => {
+    const s = loadSettings()
+    return s.consoleImagesPath || consoleImagesDir(app.getPath('userData'), s.cacheDir ? artRoot() : '')
+  }
   ipcMain.handle('consoles:image', (_e, id: string) => {
     const sys = SYSTEMS.find((x) => x.id === id)
-    return sys ? readConsoleImage(findConsoleImage(consoleImagesDir(app.getPath('userData')), sys)) : null
+    return sys ? readConsoleImage(findConsoleImage(consolesDir(), sys)) : null
   })
-  ipcMain.handle('consoles:list', () => listConsoleImages(consoleImagesDir(app.getPath('userData')), SYSTEMS))
+  ipcMain.handle('consoles:list', () => listConsoleImages(consolesDir(), SYSTEMS))
   ipcMain.handle('consoles:open', async () => {
-    await shell.openPath(ensureConsoleImagesDir(app.getPath('userData')))
+    await shell.openPath(loadSettings().consoleImagesPath || ensureConsoleImagesDir(app.getPath('userData'), loadSettings().cacheDir ? artRoot() : ''))
   })
   ipcMain.handle('stats:all', () => loadStats(join(app.getPath('userData'), 'stats.json')))
   ipcMain.handle('update:get', async () => {
@@ -745,7 +753,61 @@ app.whenReady().then(async () => {
   ipcMain.handle('tools:site', async (_e, kind: ToolKind) => {
     if (kind in OFFICIAL) await shell.openExternal(OFFICIAL[kind])
   })
-  ipcMain.handle('art:counts', () => Object.fromEntries(SYSTEMS.filter((x) => x.thumbs).map((x) => [x.id, { have: coverCount(x.id), total: library.count(x.id) }])))
+  ipcMain.handle('art:counts', () => {
+    const runs = readCoverRuns()
+    return Object.fromEntries(SYSTEMS.filter((x) => x.thumbs).map((x) => [x.id, { have: coverCount(x.id), total: library.count(x.id), missing: coverMisses(x.id), last: runs[x.id] ?? null }]))
+  })
+  ipcMain.handle('sharpness:info', async () => sharpnessInfo(loadSettings(), await detectHardware(true)))
+  // cache delle immagini: dove sta, quanto pesa, compressione, pulizia e spostamento
+  const cacheDirOf = (dir: string): string => (dir ? join(dir, 'MrEmulator-artwork') : '')
+  const applyCacheDir = (s: Settings): void => {
+    setArtRoot(cacheDirOf(s.cacheDir))
+    // cache spostata: le foto delle console (prima nei dati del programma) la seguono
+    if (s.cacheDir) {
+      try {
+        mergeDir(join(app.getPath('userData'), 'consoles'), consoleImagesDir(app.getPath('userData'), artRoot()))
+      } catch {
+        // restano dove sono
+      }
+    }
+    if (s.cacheMaxGb > 0) void pruneCache(artRoot(), s.cacheMaxGb * 1073741824)
+  }
+  applyCacheDir(loadSettings())
+  let cacheJob: { cancel: boolean } | null = null
+  ipcMain.handle('cache:stats', () => cacheStats(artRoot()))
+  ipcMain.handle('cache:optimize', async () => {
+    if (cacheJob) return { files: 0, saved: 0 }
+    const job = { cancel: false }
+    cacheJob = job
+    try {
+      const r = await optimizeCache(artRoot(), job, (pct) => win?.webContents.send('cache:progress', pct))
+      return r
+    } finally {
+      cacheJob = null
+    }
+  })
+  ipcMain.handle('cache:cancel', () => {
+    if (cacheJob) cacheJob.cancel = true
+  })
+  ipcMain.handle('cache:clear', (_e, what: 'local' | 'all') => (what === 'local' ? clearLocalCopies(artRoot()) : clearImages(artRoot())))
+  ipcMain.handle('cache:move', async (_e, dir: string) => {
+    const oldConsoles = consolesDir()
+    const target = dir ? cacheDirOf(dir) : join(app.getPath('userData'), 'artwork')
+    const r = await moveCache(artRoot(), target, (pct) => win?.webContents.send('cache:progress', pct))
+    if (r.ok) {
+      saveSettings({ ...loadSettings(), cacheDir: dir })
+      setArtRoot(cacheDirOf(dir))
+      // anche le foto delle console vanno nella nuova posizione (da quella vecchia, o da dentro la cache appena spostata)
+      try {
+        const now = consolesDir()
+        mergeDir(oldConsoles, now)
+        mergeDir(join(target, '_consoles'), now)
+      } catch {
+        // le foto restano dove sono: si può riprovare
+      }
+    }
+    return r
+  })
   let cheatsBusy = false
   ipcMain.handle('cheats:install', async () => {
     const dir = cheatsDirOf(loadSettings())

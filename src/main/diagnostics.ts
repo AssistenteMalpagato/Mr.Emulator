@@ -5,6 +5,7 @@ import { dirname, join } from 'path'
 import type { DiagnosticCheck, DiagnosticReport, Settings, SystemDef } from '@shared/types'
 import { BIOS_RULES, type BiosRule } from '@shared/bios'
 import { resolveOverlay } from './overlays'
+import { findUpscalers } from './optimize'
 import { platform } from './platform'
 import { systemDir } from './paths'
 import { mt, numLocale } from './mt'
@@ -111,9 +112,17 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
   // bordi grafici: quale file userà ogni sistema (utile quando "non cambia")
   if (s.overlayEnabled) {
     const list = c.systems.filter((x) => x.phase === 1 && x.core && c.gameCount(x.id) > 0)
-    const lines = list.map((x) => `${x.name} → ${resolveOverlay(s, x.id)?.replace(/^.*[\\/]/, '') ?? mt('(nessuno)')}`)
+    const lines = list.map((x) => `${x.name} → ${(s.imageBySystem?.[x.id] ?? s.imageStyle) === 'stretch' ? mt('(spento: immagine stirata)') : (resolveOverlay(s, x.id)?.replace(/^.*[\\/]/, '') ?? mt('(nessuno)'))}`)
     const any = list.some((x) => resolveOverlay(s, x.id))
     add(any ? 'ok' : 'warn', mt('Bordi grafici attivi'), lines.join(' · ') || mt('(nessun sistema con giochi)'), any ? '' : mt('Indica la cartella dei bordi o un bordo comune in Impostazioni → Aspetto.'))
+  }
+  // nitidezza dei pixel: cosa è stato scelto e quali shader ci sono davvero in RetroArch
+  if (s.retroarchPath) {
+    const ups = findUpscalers(s.retroarchPath)
+    const name = (p: string | null): string => (p ? p.replace(/^.*shaders_slang\//, '') : mt('non trovato'))
+    const wanted = s.sharpness ?? 'off'
+    const missing = (wanted === 'soft' && !ups.soft) || (wanted === 'high' && !ups.high && !ups.soft)
+    add(missing ? 'warn' : 'ok', mt('Nitidezza dei pixel'), mt('scelta: {v} · morbida: {a} · alta qualità: {b}', { v: mt(wanted === 'off' ? 'nessuna' : wanted === 'soft' ? 'morbida' : 'alta qualità'), a: name(ups.soft), b: name(ups.high) }), missing ? mt('Installa gli shader: in RetroArch, Aggiornamenti online → Aggiorna shader Slang.') : '')
   }
   // salvataggi: cartella, stati trovati e cosa ha scritto RetroArch nell'ultima partita
   {
@@ -136,6 +145,22 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
     .filter((l) => /\[State\]|auto.?sav|savestate|\.srm|\[SRAM\]|\[Core\] (Loaded|Version)|Failed|failed/i.test(l))
     .slice(-14)
     .join('\n')
+  // cosa ha chiesto il programma all'ultima partita per l'immagine (utile quando "la modalità non cambia")
+  const pick = (file: string, re: RegExp): string => {
+    try {
+      return readFileSync(file, 'utf-8').split(/\r?\n/).filter((l) => re.test(l)).join('\n')
+    } catch {
+      return ''
+    }
+  }
+  const raCfg = pick(join(c.userData, 'retroarch-mr.cfg'), /aspect|scale_integer|windowed_fullscreen|video_fullscreen|overlay_enable|viewport|video_shader/i)
+  const mameIni = pick(join(c.userData, 'mame', 'mame.ini'), /^(keepaspect|unevenstretch|unevenstretchx|video|window|maximize|autoror|autorol)\s/i)
+  const raVideo = tail(join(c.userData, 'retroarch-last.log'), 200000)
+    .split(/\r?\n/)
+    .filter((l) => /\[Video\]|aspect|viewport|shader|slang|preset/i.test(l))
+    .slice(-14)
+    .join('\n')
+  const combo = pick(join(c.userData, 'shader-combo.slangp'), /^(shaders|shader\d+|scale\w*\d+)\s*=/i)
   if (mainLog) add('warn', mt('Il programma ha registrato errori imprevisti'), mt('vedi il testo copiabile'), mt('Mandami il testo della diagnostica.'))
 
   const icon = { ok: '[OK]  ', warn: '[ATTENZIONE]', bad: '[PROBLEMA]' } as const
@@ -146,7 +171,10 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
     ...checks.map((k) => `${icon[k.level]} ${k.title}${k.detail ? ` — ${k.detail}` : ''}${k.fix ? `\n          → ${k.fix}` : ''}`),
     mainLog ? `\n--- main.log (ultime righe) ---\n${mainLog}` : '',
     mameLog ? `\n--- ultimo errore MAME ---\n${mameLog}` : '',
-    raLines ? `\n--- ultima partita con RetroArch (salvataggi e errori) ---\n${raLines}` : ''
+    raLines ? `\n--- ultima partita con RetroArch (salvataggi e errori) ---\n${raLines}` : '',
+    raCfg ? `\n--- immagine richiesta a RetroArch (ultima partita) ---\n${raCfg}${raVideo ? `\n${raVideo}` : ''}` : '',
+    combo ? `\n--- preset di shader unito (nitidezza + CRT) ---\n${combo}` : '',
+    mameIni ? `\n--- immagine richiesta a MAME (ultima partita) ---\n${mameIni}` : ''
   ].join('\n')
   return { checks, text, problems: checks.filter((k) => k.level === 'bad').length, warnings: checks.filter((k) => k.level === 'warn').length }
 }

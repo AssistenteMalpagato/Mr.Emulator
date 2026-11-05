@@ -64,6 +64,33 @@ export interface PlayStat {
   last: number
 }
 
+/** Nitidezza dei pixel (RetroArch): nessuna, morbida (sharp-bilinear) o alta qualità (xBRZ) */
+export type Sharpness = 'off' | 'soft' | 'high'
+
+/** Stato delle copertine di un sistema: presenti sul disco, senza copertina online, giochi in tutto e ultima ricerca completa */
+export interface CoverCount {
+  have: number
+  total: number
+  missing: number
+  last: { found: number; total: number; at: number } | null
+}
+
+export interface CacheStats {
+  dir: string
+  total: number
+  downloaded: number
+  localCopies: number
+  files: number
+}
+
+/** Cosa permette questo PC per la nitidezza dei pixel, e cosa c'è installato */
+export interface SharpnessInfo {
+  soft: { ok: boolean; reason: string }
+  high: { ok: boolean; reason: string }
+  installed: { soft: boolean; high: boolean }
+  retroarch: boolean
+}
+
 export interface ArtBulkState {
   systemId: string
   running: boolean
@@ -166,6 +193,14 @@ export interface Settings {
   savesDir: string
   /** Console: salva da sola lo stato all'uscita e propone di continuare all'avvio (sostituisce la Memory Card) */
   resumeConsoles: boolean
+  /** Cartella da cui leggere le foto delle console (vuota = quella standard, vicino alla cache) */
+  consoleImagesPath: string
+  /** Cartella dove tenere la cache delle immagini (vuota = nei dati del programma); dentro si crea «MrEmulator-artwork» */
+  cacheDir: string
+  /** Limite della cache in GB (0 = nessun limite): oltre, si tolgono le immagini più vecchie */
+  cacheMaxGb: number
+  /** Nitidezza dei pixel con gli shader di RetroArch (si applica solo dove il PC lo permette) */
+  sharpness: Sharpness
   /** Console: scelta per singolo sistema (id del sistema -> sì/no); se manca vale l'interruttore generale */
   resumeBySystem: Record<string, boolean>
   /** RetroAchievements: trofei dentro i giochi di RetroArch */
@@ -470,7 +505,14 @@ export interface MrApi {
   detectTool(kind: 'retroarch' | 'mame'): Promise<string[]>
   openToolSite(kind: 'retroarch' | 'mame'): Promise<void>
   onCheatsProgress(cb: (pct: number) => void): () => void
-  getCoverCounts(): Promise<Record<string, { have: number; total: number }>>
+  getSharpnessInfo(): Promise<SharpnessInfo>
+  getCacheStats(): Promise<CacheStats>
+  optimizeCache(): Promise<{ files: number; saved: number }>
+  cancelCacheJob(): Promise<void>
+  clearCache(what: 'local' | 'all'): Promise<number>
+  moveCache(dir: string): Promise<{ ok: boolean; error?: string }>
+  onCacheProgress(cb: (pct: number) => void): () => void
+  getCoverCounts(): Promise<Record<string, CoverCount>>
   installCheats(): Promise<{ ok: boolean; files: number; error?: string }>
   installCore(core: string): Promise<{ core: string; ok: boolean; error?: string }>
   /** Chiude il programma (anche con la chiusura bloccata) */
