@@ -35,7 +35,7 @@
   },
   "dependencies": {},
   "build": {
-    "appId": "it.vjalbert.mremulator",
+    "appId": "it.assistentemalpagato.mremulator",
     "productName": "Mr. Emulator",
     "copyright": "Copyright © 2026 Assistente Malpagato software — MIT licence",
     "directories": {
