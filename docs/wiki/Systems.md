@@ -47,6 +47,6 @@ Only a few systems need a BIOS. The first-run guide shows a checklist and verifi
 
 ## Folders
 
-Each system has one folder under your games folder, named as in the table. Mr. Emulator scans them in the background and remembers the result, so opening a system is instant. You can put the games on any drive; if an external drive is unplugged the program says so instead of showing an empty list.
+Each system has one folder under your games folder, named as in the table. If you already have your own collection, point the program to it: it **reads it as it is** and recognises common alternative names too (for example `Genesis` for Mega Drive, `PlayStation` or `PS1` for PlayStation, `Super Nintendo` or `SFC` for SNES, `Game Boy Advance` for GBA) — nothing is created or renamed. Folders it does not recognise are ignored. Mr. Emulator scans them in the background and remembers the result, so opening a system is instant. You can put the games on any drive; if an external drive is unplugged the program says so instead of showing an empty list.
 
 [◀ Features tour](Features) · [Next: Controls ▶](Controls)

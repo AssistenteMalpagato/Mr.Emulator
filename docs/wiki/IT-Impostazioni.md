@@ -10,7 +10,7 @@ Ogni opzione, scheda per scheda. Ricorda di premere **SALVA** dopo ogni modifica
 
 | Opzione | Cosa fa |
 |---|---|
-| **Cartella ROM** / **Cartella BIOS** | Dove sono i tuoi giochi e i BIOS. *Crea cartelle mancanti* costruisce una sottocartella per sistema. *Usa un altro disco per tutto…* crea l'intera struttura di cartelle su un altro disco. |
+| **Cartella ROM** / **Cartella BIOS** | Dove sono i tuoi giochi e i BIOS. Scegliere una cartella la **legge soltanto** (le cartelle dei sistemi si riconoscono dai nomi comuni); non si crea nulla. *Crea cartelle mancanti* costruisce le sottocartelle dei sistemi (facoltativo). *Usa un altro disco per tutto…* crea una struttura completa su un altro disco. |
 | **RetroArch (retroarch.exe)** | Percorso di RetroArch. Pulsanti: *Sito ufficiale*, *Cerca sul PC* (guarda nei posti comuni) e *Sfoglia*. |
 | **MAME (mame.exe)** | Percorso di MAME. *Verifica MAME* mostra la versione e quante macchine conosce. Usa la versione che corrisponde al tuo set di ROM. |
 | **Cartella ROM di MAME / CHD** | Una cartella ROM dedicata a ogni versione di MAME (per esempio `mame0289`) e una cartella facoltativa per le immagini disco CHD. |

@@ -5,7 +5,7 @@ import { sfx } from '../sound'
 import ArtShowcase from './ArtShowcase'
 import Orbs from './Orbs'
 import ConsoleImage from './ConsoleImage'
-import { getLang, t } from '../i18n'
+import { getLang, numLocale, t } from '../i18n'
 
 const COLS = 3
 
@@ -101,7 +101,7 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
           )}
           {lib?.scanning && (
             <span className="scan" title={t('La libreria si aggiorna in background')}>
-              {t('⟳ SCANSIONE')}{lib.found > 0 ? ` · ${lib.found.toLocaleString('it')}` : ''}
+              {t('⟳ SCANSIONE')}{lib.found > 0 ? ` · ${lib.found.toLocaleString(numLocale())}` : ''}
             </span>
           )}
           {update && (

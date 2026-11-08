@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { Game, Settings, VerifyBad, VerifyState } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import Orbs from './Orbs'
-import { t } from '../i18n'
+import { numLocale, t } from '../i18n'
 
 const reasonIt = (r: string): string =>
   /NOT FOUND/.test(r) ? 'mancante' : /INCORRECT CHECKSUM/.test(r) ? 'contenuto errato' : /INCORRECT LENGTH/.test(r) ? 'dimensione errata' : r
@@ -59,7 +59,7 @@ export default function RomCheck({ onBack }: { onBack: () => void }): React.JSX.
     const text = fixList.map(([zip, files]) => `${zip}\n   ${[...files].join('\n   ')}`).join('\n')
     try {
       await navigator.clipboard.writeText(text)
-      setMsg(t('Copiato: {n} ZIP da sostituire.', { n: fixList.length.toLocaleString('it') }))
+      setMsg(t('Copiato: {n} ZIP da sostituire.', { n: fixList.length.toLocaleString(numLocale()) }))
     } catch {
       setMsg(t('Non riesco a copiare negli appunti.'))
     }
@@ -101,11 +101,11 @@ export default function RomCheck({ onBack }: { onBack: () => void }): React.JSX.
             </div>
             <div className="kv">
               <span>{t('Set controllati')}</span>
-              <b>{st.checked.toLocaleString('it')}</b>
+              <b>{st.checked.toLocaleString(numLocale())}</b>
             </div>
             <div className="kv">
               <span>{t('Difettosi finora')}</span>
-              <b>{st.bad.toLocaleString('it')}</b>
+              <b>{st.bad.toLocaleString(numLocale())}</b>
             </div>
           </section>
         )}
@@ -119,19 +119,19 @@ export default function RomCheck({ onBack }: { onBack: () => void }): React.JSX.
             </div>
             <div className="kv">
               <span>{t('Set controllati')}</span>
-              <b>{sum.checked.toLocaleString('it')}</b>
+              <b>{sum.checked.toLocaleString(numLocale())}</b>
             </div>
             <div className="kv">
               <span>{t('✔ A posto')}</span>
-              <b>{sum.good.toLocaleString('it')}</b>
+              <b>{sum.good.toLocaleString(numLocale())}</b>
             </div>
             <div className="kv">
               <span>{t('⚠ Difettosi')}</span>
-              <b style={{ color: sum.badCount ? '#ffd400' : undefined }}>{sum.badCount.toLocaleString('it')}</b>
+              <b style={{ color: sum.badCount ? '#ffd400' : undefined }}>{sum.badCount.toLocaleString(numLocale())}</b>
             </div>
             <div className="kv">
               <span>{t('Eseguito il')}</span>
-              <b>{new Date(sum.at).toLocaleString('it')}</b>
+              <b>{new Date(sum.at).toLocaleString(numLocale())}</b>
             </div>
             {sum.checked === 0 && (
               <>
@@ -172,7 +172,7 @@ export default function RomCheck({ onBack }: { onBack: () => void }): React.JSX.
 
         {!st.running && st.badList.length > 0 && (
           <section className="card wide">
-            <h3>{t('Giochi da sistemare (')}{st.badList.length.toLocaleString('it')})</h3>
+            <h3>{t('Giochi da sistemare (')}{st.badList.length.toLocaleString(numLocale())})</h3>
             <div className="rc-list">
               {st.badList.slice(0, MAX_SHOWN).map((b) => (
                 <div className="rc-item" key={b.name}>
@@ -188,7 +188,7 @@ export default function RomCheck({ onBack }: { onBack: () => void }): React.JSX.
               ))}
             </div>
             {st.badList.length > MAX_SHOWN && (
-              <p className="hint">{t('… e altri')} {(st.badList.length - MAX_SHOWN).toLocaleString('it')}{t(': usa "Copia l\'elenco" per vederli tutti.')}</p>
+              <p className="hint">{t('… e altri')} {(st.badList.length - MAX_SHOWN).toLocaleString(numLocale())}{t(': usa "Copia l\'elenco" per vederli tutti.')}</p>
             )}
           </section>
         )}

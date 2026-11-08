@@ -1,17 +1,26 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { DiagnosticReport, Settings } from '@shared/types'
+import type { DiagnosticReport, FolderMatch, Settings } from '@shared/types'
 import { ToolFinder } from './ToolFinder'
 import { useInput } from '../hooks/useInput'
 import Orbs from './Orbs'
-import { t } from '../i18n'
+import { getLang, setLang, t } from '../i18n'
 
 type Bios = Awaited<ReturnType<typeof window.mr.getBiosStatus>>
 
-const STEPS = ['BENVENUTO', 'I TUOI GIOCHI', 'RETROARCH', 'BIOS', 'MAME', 'FINE']
+const STEPS = ['LINGUA', 'BENVENUTO', 'I TUOI GIOCHI', 'RETROARCH', 'BIOS', 'MAME', 'FINE']
+
+/** Il passo resta quando cambia la lingua (l'interfaccia si ricrea): si ricomincia dal punto in cui si era */
+let lastStep = 0
 
 /** Procedura guidata del primo avvio: pochi passi, parole semplici, niente da cercare nelle impostazioni */
 export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.Element {
-  const [step, setStep] = useState(0)
+  const [step, setStepState] = useState(lastStep)
+  const setStep = (f: (n: number) => number): void =>
+    setStepState((n) => {
+      lastStep = f(n)
+      return lastStep
+    })
+  const [existing, setExisting] = useState<{ found: FolderMatch[]; unknown: string[]; dir: string } | null>(null)
   const [s, setS] = useState<Settings | null>(null)
   const [bios, setBios] = useState<Bios>([])
   const [diag, setDiag] = useState<DiagnosticReport | null>(null)
@@ -30,8 +39,10 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
   }, [reload])
 
   const finish = async (): Promise<void> => {
+    await window.mr.ensureDefaultFolders()
     const cur = await window.mr.getSettings()
     await window.mr.saveSettings({ ...cur, firstRunDone: true })
+    lastStep = 0
     onDone()
   }
   const next = (): void => setStep((n) => Math.min(STEPS.length - 1, n + 1))
@@ -39,8 +50,8 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
 
   useEffect(() => {
     if (step === STEPS.length - 1) window.mr.getDiagnostics().then(setDiag)
-    if (step === 3) window.mr.getBiosStatus().then(setBios)
-    if (step === 2) window.mr.getCoreList().then(setCores)
+    if (step === 4) window.mr.getBiosStatus().then(setBios)
+    if (step === 3) window.mr.getCoreList().then(setCores)
   }, [step])
 
   useInput({ onConfirm: () => (step === STEPS.length - 1 ? finish() : next()), onBack: back })
@@ -74,18 +85,40 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
         <button className="chip" onClick={finish}>{t('SALTA LA GUIDA')}</button>
       </header>
       <div className="fr-steps">
-        {STEPS.map((t, i) => (
-          <span key={t} className={`fr-step ${i === step ? 'on' : ''} ${i < step ? 'done' : ''}`}>{i + 1}. {t}</span>
+        {STEPS.map((label, i) => (
+          <span key={label} className={`fr-step ${i === step ? 'on' : ''} ${i < step ? 'done' : ''}`}>{i + 1}. {t(label)}</span>
         ))}
       </div>
 
       <div className="fr-body">
         {step === 0 && (
           <>
+            <h2>Choose your language · Scegli la lingua</h2>
+            <p>The guide and the whole program will use it. You can change it any time in Settings. · La guida e tutto il programma useranno questa lingua. Puoi cambiarla quando vuoi dalle Impostazioni.</p>
+            <div className="fr-actions">
+              {(['it', 'en'] as const).map((l) => (
+                <button
+                  key={l}
+                  className={`chip big ${getLang() === l ? 'on' : ''}`}
+                  onClick={async () => {
+                    const cur = await window.mr.getSettings()
+                    await window.mr.saveSettings({ ...cur, language: l })
+                    setLang(l)
+                  }}
+                >
+                  {l === 'it' ? '🇮🇹 ITALIANO' : '🇬🇧 ENGLISH'}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {step === 1 && (
+          <>
             <h2>{t('Benvenuto!')}</h2>
-            <p>{t('In cinque passi il programma è pronto. Non serve conoscere nulla di emulazione: ti diciamo noi cosa fare, e puoi ripetere questa guida quando vuoi da Impostazioni.')}</p>
+            <p>{t('In pochi passi il programma è pronto. Non serve conoscere nulla di emulazione: ti diciamo noi cosa fare, e puoi ripetere questa guida quando vuoi da Impostazioni.')}</p>
             <ul className="fr-list">
-              <li><b>{t('I tuoi giochi')}</b>{t(': scegli dove tenerli.')}</li>
+              <li><b>{t('I tuoi giochi')}</b>{t(': indica dove sono (o fai creare le cartelle).')}</li>
               <li><b>{t('RetroArch')}</b>{t(': il programma che fa partire le console.')}</li>
               <li><b>{t('BIOS')}</b>{t(': alcuni sistemi hanno bisogno di file speciali. Ti mostriamo quali.')}</li>
               <li><b>{t('MAME')}</b>{t(': facoltativo, per i giochi arcade.')}</li>
@@ -94,12 +127,38 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
           </>
         )}
 
-        {step === 1 && (
+        {step === 2 && (
           <>
-            <h2>{t('Dove tieni i tuoi giochi?')}</h2>
-            <p>{t('Il programma crea una cartella per ogni sistema (nes, snes, megadrive, psx…) e una per i BIOS. Se hai un disco esterno o un secondo disco, usa quello.')}</p>
+            <h2>{t('Dove sono i tuoi giochi?')}</h2>
+            <p>{t('Se hai già una cartella con le ROM, indicala: il programma la legge così com\'è, senza creare nulla, e riconosce da solo i nomi più comuni delle cartelle dei sistemi («SNES», «Genesis», «PlayStation»…). Se parti da zero, puoi far creare le cartelle.')}</p>
             <div className="fr-actions">
-              <button className="chip big" onClick={async () => { setS(await window.mr.setupFolders()); setMsg(t('✔ Cartelle create in Documenti\\MrEmulator')) ; await reload() }}>{t('📁 USA LA CARTELLA STANDARD (Documenti)')}</button>
+              <button
+                className="chip big"
+                onClick={async () => {
+                  const dir = await window.mr.pickPath('dir')
+                  if (!dir) return
+                  const r = await window.mr.useExistingRoms(dir)
+                  setS(r.settings)
+                  setExisting({ found: r.found, unknown: r.unknown, dir })
+                  setMsg('')
+                  await reload()
+                }}
+              >
+                {t('📂 HO GIÀ UNA CARTELLA CON I GIOCHI…')}
+              </button>
+              <button
+                className="chip big"
+                onClick={async () => {
+                  const cur = await window.mr.getSettings()
+                  await window.mr.saveSettings({ ...cur, romsDir: '', biosDir: '', mameRomDir: '', folderBySystem: {} })
+                  setS(await window.mr.setupFolders())
+                  setExisting(null)
+                  setMsg(t('✔ Cartelle create in Documenti\\MrEmulator'))
+                  await reload()
+                }}
+              >
+                {t('📁 CREA LE CARTELLE PER ME (Documenti)')}
+              </button>
               <button
                 className="chip big"
                 onClick={async () => {
@@ -107,6 +166,7 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
                   if (!dir) return
                   try {
                     setS(await window.mr.setupRoot(dir))
+                    setExisting(null)
                     setMsg(t('✔ Tutto impostato dentro {dir}', { dir }))
                     await reload()
                   } catch {
@@ -114,18 +174,50 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
                   }
                 }}
               >
-                {t('💾 SCEGLI UN ALTRO DISCO…')}
+                {t('💾 CREA LE CARTELLE SU UN ALTRO DISCO…')}
               </button>
             </div>
-            <p className="fr-ok">{msg || (s.romsDir ? `Cartella attuale: ${s.romsDir}` : t('Nessuna cartella scelta ancora.'))}</p>
+            <p className="fr-ok">{msg || (s.romsDir ? t('Cartella attuale: {dir}', { dir: s.romsDir }) : t('Nessuna cartella scelta ancora.'))}</p>
+            {existing && (
+              <>
+                {existing.found.length > 0 ? (
+                  <>
+                    <p className="fr-ok">{t('✔ Riconosciuti {n} sistemi:', { n: existing.found.length })}</p>
+                    <ul className="fr-list">
+                      {existing.found.map((f) => (
+                        <li key={f.id}>
+                          <b>{f.name}</b> → {f.folder} ({t('{n} file', { n: f.files.toLocaleString(getLang() === 'it' ? 'it' : 'en') })})
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <p className="fr-warn">{t('Non ho riconosciuto nessuna cartella di sistema. Dentro la cartella devono esserci sottocartelle come nes, snes, megadrive… (vanno bene anche i nomi più comuni). Scegli un\'altra cartella oppure fai creare quelle dei sistemi qui sotto.')}</p>
+                )}
+                {existing.unknown.length > 0 && (
+                  <p className="hint">{t('Cartelle non riconosciute (le ignoro): {list}', { list: existing.unknown.slice(0, 12).join(', ') + (existing.unknown.length > 12 ? '…' : '') })}</p>
+                )}
+                <div className="fr-actions">
+                  <button
+                    className="chip"
+                    onClick={async () => {
+                      setS(await window.mr.setupFolders())
+                      setMsg(t('✔ Create le cartelle dei sistemi che mancavano'))
+                    }}
+                  >
+                    {t('➕ CREA LE CARTELLE DEI SISTEMI MANCANTI (facoltativo)')}
+                  </button>
+                </div>
+              </>
+            )}
             <div className="fr-actions">
               <button className="chip" onClick={() => window.mr.openFolder('roms')}>{t('APRI LA CARTELLA DEI GIOCHI')}</button>
             </div>
-            <p className="hint">{t('Copia lì le tue ROM, ognuna nella cartella del suo sistema.')}</p>
+            <p className="hint">{t('Non viene mai spostato né cancellato nulla: le tue ROM restano dove sono.')}</p>
           </>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <>
             <h2>{t('RetroArch')}</h2>
             <p>{t('È il programma gratuito che fa partire NES, SNES, Mega Drive, PlayStation, Dreamcast e le altre console. Si scarica dal sito ufficiale')} <b>{t('retroarch.com')}</b> {t('(versione Windows), si estrae in una cartella e basta: non si installa.')}</p>
@@ -154,7 +246,7 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
                         }
                       />
                       <span className="fr-core-n">{c.systems.join(', ')}</span>
-                      <span className="fr-core-s">{c.installed ? t('✔ già installato') : c.games ? `${c.games} giochi` : c.core}</span>
+                      <span className="fr-core-s">{c.installed ? t('✔ già installato') : c.games ? t('{n} giochi', { n: c.games }) : c.core}</span>
                     </label>
                   ))}
                 </div>
@@ -196,10 +288,11 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
           </>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <>
             <h2>{t('BIOS: i file speciali')}</h2>
             <p>{t('Alcuni sistemi non partono senza un file BIOS. Servono solo se hai giochi per quel sistema. Mr. Emulator non li fornisce: se li possiedi, copiali nella cartella indicata.')}</p>
+            <p className="hint">{t('Cartella BIOS: {dir}', { dir: s.biosDir })}</p>
             <div className="fr-bios">
               {bios.map((b) => (
                 <div key={b.systemId} className={`fr-b ${b.found ? 'ok' : ''}`}>
@@ -211,6 +304,17 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
               ))}
             </div>
             <div className="fr-actions">
+              <button
+                className="chip"
+                onClick={async () => {
+                  const dir = await window.mr.pickPath('dir')
+                  if (!dir) return
+                  await window.mr.saveSettings({ ...s, biosDir: dir })
+                  await reload()
+                }}
+              >
+                {t('📁 SCEGLI LA CARTELLA BIOS…')}
+              </button>
               <button className="chip" onClick={() => window.mr.openFolder('bios')}>{t('📂 APRI LA CARTELLA BIOS')}</button>
               <button className="chip" onClick={() => window.mr.getBiosStatus().then(setBios)}>{t('⟳ RICONTROLLA')}</button>
             </div>
@@ -218,7 +322,7 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
           </>
         )}
 
-        {step === 4 && (
+        {step === 5 && (
           <>
             <h2>{t('MAME (facoltativo)')}</h2>
             <p>{t('Serve solo per il sistema')} <b>{t('Arcade (MAME)')}</b> {t('e per dare i nomi giusti ai giochi delle console. Si scarica da')} <b>{t('mamedev.org')}</b>{t('. Usa la stessa versione dei tuoi set di ROM.')}</p>
@@ -230,14 +334,14 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
           </>
         )}
 
-        {step === 5 && (
+        {step === 6 && (
           <>
             <h2>{t('Tutto pronto?')}</h2>
             {!diag ? (
               <p>{t('Controllo in corso…')}</p>
             ) : (
               <>
-                <p>{diag.problems === 0 ? t('✔ Nessun problema trovato.') : `${diag.problems} cose da sistemare (puoi farlo anche dopo da Impostazioni → Diagnostica).`}</p>
+                <p>{diag.problems === 0 ? t('✔ Nessun problema trovato.') : t('{n} cose da sistemare (puoi farlo anche dopo da Impostazioni → Diagnostica).', { n: diag.problems })}</p>
                 <ul className="diag-list">
                   {diag.checks.filter((k) => k.level !== 'ok').slice(0, 6).map((k, i) => (
                     <li key={i} className={`diag-${k.level}`}>

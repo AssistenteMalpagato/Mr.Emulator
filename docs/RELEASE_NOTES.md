@@ -1,3 +1,13 @@
+## Mr. Emulator 0.2.15
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🌍 **The first-run guide starts with the language** (Italiano / English) and continues in the chosen language. The step names of the guide were never translated before; now they are.
+- 📂 **Use the games folder you already have**: the guide now reads an existing folder **without creating anything** and recognises common system-folder names («SNES», «Genesis», «PlayStation», «Game Boy Advance»…), showing what it found. Creating the standard folders (in Documents or on another drive) is now an option, not the default. The program no longer creates system folders by itself when you change the ROM folder in Settings (*Create missing folders* does it on request). You can also choose the BIOS folder in the guide.
+- 🌍 **Language switch audit**: the *Systems on home* tab and some messages stayed in Italian; numbers followed the Italian format in English. Fixed. Changing the language in Settings is now saved immediately (before, the menu could jump back to the old language).
+- 📖 Wiki: the first-run screenshots were wrong (they showed the home screen); replaced.
+
 ## Mr. Emulator 0.2.14
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.

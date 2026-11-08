@@ -2,6 +2,7 @@ import { promises as fsp, cpSync, existsSync, mkdirSync, renameSync, rmSync } fr
 import { dirname, join, resolve, sep } from 'path'
 import { writeFileAtomic } from './atomic'
 import { compressImage } from './artwork'
+import { mt } from './mt'
 
 export interface CacheStats {
   dir: string
@@ -171,7 +172,7 @@ export async function moveCache(from: string, to: string, onProgress: (pct: numb
   const a = resolve(from)
   const b = resolve(to)
   if (a === b) return { ok: true }
-  if (b.startsWith(a + sep) || a.startsWith(b + sep)) return { ok: false, error: 'cartelle una dentro l\'altra' }
+  if (b.startsWith(a + sep) || a.startsWith(b + sep)) return { ok: false, error: mt('cartelle una dentro l\'altra') }
   try {
     mkdirSync(dirname(b), { recursive: true })
     if (!existsSync(a)) {

@@ -2,7 +2,7 @@
 
 # 🚀 Getting started
 
-<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-firstrun.webp" alt="First-run guide" width="720">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-firstrun-1-language.webp" alt="First-run guide: choose the language" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-firstrun-3-games.webp" alt="First-run guide: your games folder" width="49%">
 
 ## 1. Install
 
@@ -14,7 +14,8 @@
 
 | Step | What it does | What you do |
 |---|---|---|
-| **Games folder** | Creates one sub-folder per system (`nes`, `snes`, `megadrive`, `psx`…) in `Documents\MrEmulator` or on any drive you choose. | Copy your ROMs into the folders. Pick another drive if you prefer. |
+| **Language** | You choose **Italiano** or **English**; the whole guide and the program continue in that language. | Pick one (you can change it any time in Settings). |
+| **Games folder** | **Reads the folder you already have** — nothing is created, moved or deleted — and recognises system folders by common names («SNES», «Genesis», «PlayStation»…). Or creates a ready-made structure in `Documents\MrEmulator` or on another drive. | Choose *I already have a folder with my games*, or let it create the folders if you start from scratch. |
 | **RetroArch** | Looks for `retroarch.exe` in the usual places and offers it. | If it is not found, get it from [retroarch.com](https://www.retroarch.com/) (Windows 64-bit, just extract it) and click **Browse**. |
 | **Cores** | One click downloads the cores you need from the official libretro archive. | Tick the systems you use. |
 | **BIOS** | Shows a checklist with the files each system needs and verifies known ones by checksum. | Copy missing BIOS files into the `bios` folder. |

@@ -10,7 +10,7 @@ Every option, tab by tab. Remember to press **SAVE** after changing anything (th
 
 | Option | What it does |
 |---|---|
-| **ROM folder** / **BIOS folder** | Where your games and BIOS files are. *Create missing folders* builds one sub-folder per system. *Use another drive for everything…* creates the whole folder structure on another disk. |
+| **ROM folder** / **BIOS folder** | Where your games and BIOS files are. Choosing a folder only **reads** it (system folders are recognised by common names); nothing is created. *Create missing folders* builds the system sub-folders (optional). *Use another drive for everything…* creates a whole folder structure on another disk. |
 | **RetroArch (retroarch.exe)** | Path to RetroArch. Buttons: *Official site*, *Search this PC* (looks in the usual places) and *Browse*. |
 | **MAME (mame.exe)** | Path to MAME. *Check MAME* shows its version and how many machines it knows. Use the version that matches your ROM set. |
 | **MAME ROM folder / CHD folder** | A dedicated ROM folder per MAME version (for example `mame0289`), and an optional folder for CHD disk images. |

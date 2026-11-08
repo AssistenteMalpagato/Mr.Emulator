@@ -47,6 +47,6 @@ Solo pochi sistemi richiedono un BIOS. La guida al primo avvio mostra l'elenco e
 
 ## Cartelle
 
-Ogni sistema ha una cartella sotto quella dei giochi, con il nome della tabella. Mr. Emulator le scansiona in background e ricorda il risultato, quindi aprire un sistema è istantaneo. I giochi possono stare su qualsiasi disco; se un disco esterno è scollegato il programma lo dice invece di mostrare un elenco vuoto.
+Ogni sistema ha una cartella sotto quella dei giochi, con il nome della tabella. Se hai già una tua raccolta, indicala al programma: la **legge così com'è** e riconosce anche i nomi alternativi più comuni (per esempio `Genesis` per il Mega Drive, `PlayStation` o `PS1` per la PlayStation, `Super Nintendo` o `SFC` per lo SNES, `Game Boy Advance` per il GBA) — non crea né rinomina nulla. Le cartelle che non riconosce vengono ignorate. Mr. Emulator le scansiona in background e ricorda il risultato, quindi aprire un sistema è istantaneo. I giochi possono stare su qualsiasi disco; se un disco esterno è scollegato il programma lo dice invece di mostrare un elenco vuoto.
 
 [◀ Tour delle funzioni](IT-Funzioni) · [Avanti: Comandi ▶](IT-Comandi)
