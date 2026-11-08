@@ -2,11 +2,11 @@
 
 # 🚀 Primi passi
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-firstrun.webp" alt="Guida al primo avvio" width="720">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-firstrun.webp" alt="Guida al primo avvio" width="720">
 
 ## 1. Installa
 
-1. Scarica `Mr-Emulator-Setup-<versione>.exe` dall'[ultima release](https://github.com/VjAlbert/Mr.Emulator/releases/latest).
+1. Scarica `Mr-Emulator-Setup-<versione>.exe` dall'[ultima release](https://github.com/AssistenteMalpagato/Mr.Emulator/releases/latest).
 2. Avvialo. Windows può mostrare *«Windows ha protetto il PC»* perché il programma non ha ancora una firma digitale a pagamento: premi **Ulteriori informazioni → Esegui comunque**.
 3. Apri Mr. Emulator: la **guida al primo avvio** parte da sola.
 
@@ -31,7 +31,7 @@ Puoi saltare la guida e rifarla quando vuoi dal fondo delle **Impostazioni**.
 3. Scegli un gioco. A destra vedi la copertina, il titolo e — se c'è un salvataggio — l'interruttore **Continua / Nuova partita**.
 4. **Invio** (o pulsante 1) per avviare. Si esce con **Esc**, oppure **Select + Start** sul gamepad.
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-title.webp" alt="Schermata iniziale" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-home.webp" alt="Scelta del sistema" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-title.webp" alt="Schermata iniziale" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-home.webp" alt="Scelta del sistema" width="49%">
 
 ## 4. Rendilo tuo
 

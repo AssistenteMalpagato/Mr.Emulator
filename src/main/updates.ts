@@ -4,7 +4,7 @@ export interface UpdateInfo {
   url: string
 }
 
-const REPO = 'VjAlbert/Mr.Emulator'
+const REPO = 'AssistenteMalpagato/Mr.Emulator'
 
 /** Confronto tra versioni "0.1.10" e "0.1.9": numero per numero */
 export function isNewer(candidate: string, current: string): boolean {

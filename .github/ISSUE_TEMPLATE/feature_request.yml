@@ -2,7 +2,7 @@ name: Feature request / Richiesta di funzione
 description: Suggest an idea. English or Italian is fine. / Proponi un'idea. Va bene italiano o inglese.
 title: "[Feature] "
 labels: ["feature"]
-projects: ["VjAlbert/4"]
+projects: ["AssistenteMalpagato/4"]
 body:
   - type: textarea
     id: problem

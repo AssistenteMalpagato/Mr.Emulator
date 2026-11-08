@@ -2,7 +2,7 @@
 
 [English](ROADMAP.md) · **Italiano**
 
-> Gli elementi ancora aperti sono tracciati come [Issues su GitHub](https://github.com/VjAlbert/Mr.Emulator/issues). Questo documento è la copia in italiano; quella inglese (`ROADMAP.md`) è la più aggiornata.
+> Gli elementi ancora aperti sono tracciati come [Issues su GitHub](https://github.com/AssistenteMalpagato/Mr.Emulator/issues). Questo documento è la copia in italiano; quella inglese (`ROADMAP.md`) è la più aggiornata.
 
 Piattaforma di riferimento: **Windows**. Il codice sarà organizzato in modo da non rendere impossibile un eventuale supporto ad altri sistemi operativi in futuro, ma non è un obiettivo del progetto al momento.
 

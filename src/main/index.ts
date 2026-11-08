@@ -741,7 +741,7 @@ app.whenReady().then(async () => {
     return loadSettings().checkUpdates ? update : null
   })
   ipcMain.handle('update:open', async () => {
-    if (update && update.url.startsWith('https://github.com/VjAlbert/Mr.Emulator/')) await shell.openExternal(update.url)
+    if (update && update.url.startsWith('https://github.com/AssistenteMalpagato/Mr.Emulator/')) await shell.openExternal(update.url)
   })
   ipcMain.handle('app:version', () => app.getVersion())
   ipcMain.handle('app:quit', () => {

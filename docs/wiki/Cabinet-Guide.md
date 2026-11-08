@@ -2,7 +2,7 @@
 
 # 🕹️ Cabinet guide
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-controls.webp" alt="Controls screen" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-stage-title.webp" alt="Title screen, stage style" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-controls.webp" alt="Controls screen" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-stage-title.webp" alt="Title screen, stage style" width="49%">
 
 Mr. Emulator started life with arcade cabinets in mind. This page puts together everything that matters when the PC lives inside a cabinet. Hardware remarks are general advice, **not guarantees**: test with your own parts.
 

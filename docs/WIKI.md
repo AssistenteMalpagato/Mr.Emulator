@@ -12,7 +12,7 @@ The pages in [`docs/wiki`](wiki) are written **for the GitHub Wiki** (a separate
 1. On GitHub, open the repository's **Wiki** tab and create the first page (this creates the wiki repository).
 2. Clone it and copy the pages:
    ```bash
-   git clone https://github.com/VjAlbert/Mr.Emulator.wiki.git
+   git clone https://github.com/AssistenteMalpagato/Mr.Emulator.wiki.git
    cp docs/wiki/*.md Mr.Emulator.wiki/
    cd Mr.Emulator.wiki && git add -A && git commit -m "Update wiki" && git push
    ```

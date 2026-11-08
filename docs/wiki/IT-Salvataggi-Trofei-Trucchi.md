@@ -2,7 +2,7 @@
 
 # 💾 Salvataggi, trofei e trucchi
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-saves.webp" alt="Impostazioni dei salvataggi" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-cheats.webp" alt="Trofei e trucchi" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-saves.webp" alt="Impostazioni dei salvataggi" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-cheats.webp" alt="Trofei e trucchi" width="49%">
 
 ## Salvataggi — «Continua» al posto delle memory card
 

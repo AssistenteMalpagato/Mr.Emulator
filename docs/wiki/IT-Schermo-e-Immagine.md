@@ -2,7 +2,7 @@
 
 # 🖥️ Schermo e qualità dell'immagine
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-screen.webp" alt="Impostazioni dello schermo" width="720">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-screen.webp" alt="Impostazioni dello schermo" width="720">
 
 Tutto sta in **Il tuo PC** (modalità generale) e in **Impostazioni → Schermo**.
 

@@ -2,7 +2,7 @@
 
 # ⚙️ Guida alle impostazioni
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-settings.webp" alt="Impostazioni, scheda Generale" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-look.webp" alt="Impostazioni, scheda Aspetto" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-settings.webp" alt="Impostazioni, scheda Generale" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-look.webp" alt="Impostazioni, scheda Aspetto" width="49%">
 
 Ogni opzione, scheda per scheda. Ricorda di premere **SALVA** dopo ogni modifica (i pulsanti che agiscono subito — sposta la cache, backup dei salvataggi, scarica i trucchi — non lo richiedono).
 

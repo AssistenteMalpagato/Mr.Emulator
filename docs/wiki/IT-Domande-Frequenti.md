@@ -60,7 +60,7 @@ Probabilmente — vedi [Comandi](IT-Comandi). Usa la schermata Comandi per prova
 Niente telemetria, niente account. L'unica richiesta di rete ricorrente è il controllo giornaliero facoltativo degli aggiornamenti. L'elenco completo è in [Privacy e note legali](IT-Privacy-e-Note-Legali).
 
 ### Come segnalo un bug o chiedo una funzione?
-Apri una [segnalazione](https://github.com/VjAlbert/Mr.Emulator/issues) con il testo della **Diagnostica**, le versioni di RetroArch e MAME e cosa è successo.
+Apri una [segnalazione](https://github.com/AssistenteMalpagato/Mr.Emulator/issues) con il testo della **Diagnostica**, le versioni di RetroArch e MAME e cosa è successo.
 
 ### In cosa è diverso dagli altri launcher?
 Vedi il [Confronto](IT-Confronto) onesto.

@@ -2,7 +2,7 @@
 
 # 🕹️ Guida al cabinato
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-controls.webp" alt="Schermata dei comandi" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-stage-title.webp" alt="Schermata iniziale, stile palcoscenico" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-controls.webp" alt="Schermata dei comandi" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-stage-title.webp" alt="Schermata iniziale, stile palcoscenico" width="49%">
 
 Mr. Emulator è nato pensando ai cabinati arcade. Questa pagina raccoglie tutto ciò che conta quando il PC vive dentro un cabinato. Le osservazioni sull'hardware sono consigli generali, **non garanzie**: prova con i tuoi componenti.
 

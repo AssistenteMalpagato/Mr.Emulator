@@ -60,7 +60,7 @@ Probably — see [Controls](Controls). Use the Controls screen to test, and manu
 No telemetry, no accounts. The only recurring network request is the optional daily update check. Full list in [Privacy & legal](Privacy-and-Legal).
 
 ### How do I report a bug or ask for a feature?
-Open an [issue](https://github.com/VjAlbert/Mr.Emulator/issues) with the **Diagnostics** text, your RetroArch and MAME versions, and what happened.
+Open an [issue](https://github.com/AssistenteMalpagato/Mr.Emulator/issues) with the **Diagnostics** text, your RetroArch and MAME versions, and what happened.
 
 ### How is it different from other launchers?
 See the honest [Comparison](Comparison).

@@ -8,7 +8,7 @@ When active, the installer will be signed with a certificate provided by **[Sign
 
 ## What is signed
 
-Only the Windows installer `Mr-Emulator-Setup-<version>.exe` published in the project's [GitHub Releases](https://github.com/VjAlbert/Mr.Emulator/releases), built from this repository's source code. Nothing else is signed with this certificate.
+Only the Windows installer `Mr-Emulator-Setup-<version>.exe` published in the project's [GitHub Releases](https://github.com/AssistenteMalpagato/Mr.Emulator/releases), built from this repository's source code. Nothing else is signed with this certificate.
 
 ## How it is built
 
@@ -20,9 +20,9 @@ Only the Windows installer `Mr-Emulator-Setup-<version>.exe` published in the pr
 
 | Role | Person |
 |---|---|
-| **Author / committer** | [VjAlbert](https://github.com/VjAlbert) |
-| **Reviewer** | [VjAlbert](https://github.com/VjAlbert) (all changes go through the repository's public history) |
-| **Approver** (releases a signing request) | [VjAlbert](https://github.com/VjAlbert) |
+| **Author / committer** | [AssistenteMalpagato](https://github.com/AssistenteMalpagato) |
+| **Reviewer** | [AssistenteMalpagato](https://github.com/AssistenteMalpagato) (all changes go through the repository's public history) |
+| **Approver** (releases a signing request) | [AssistenteMalpagato](https://github.com/AssistenteMalpagato) |
 
 Signing requests are approved manually for each release.
 
@@ -35,4 +35,4 @@ Mr. Emulator does **not** collect or send usage data and does not need an accoun
 - a **new-version check** against this repository's GitHub releases, at most once a day, **which can be turned off** in Settings. Nothing about the user or the PC is sent;
 - RetroAchievements, **only if the user turns trophies on**, handled by RetroArch.
 
-The full list is on the wiki page [Privacy & legal](https://github.com/VjAlbert/Mr.Emulator/wiki/Privacy-and-Legal).
+The full list is on the wiki page [Privacy & legal](https://github.com/AssistenteMalpagato/Mr.Emulator/wiki/Privacy-and-Legal).

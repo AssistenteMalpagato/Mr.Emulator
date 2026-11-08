@@ -2,7 +2,7 @@
 
 # 🕹️ Controls
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-controls.webp" alt="Controls screen" width="720">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-controls.webp" alt="Controls screen" width="720">
 
 Mr. Emulator is navigated entirely with **keyboard, mouse, gamepad or arcade panel**, and it writes matching input settings for RetroArch **and** MAME, so what you configure once works everywhere.
 

@@ -4,7 +4,7 @@
 
 ## Look and feel
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-home.webp" alt="Comic style" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-stage-home.webp" alt="Stage style" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-home.webp" alt="Comic style" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-stage-home.webp" alt="Stage style" width="49%">
 
 - **Two complete styles.** *Comic* turns the whole program into a comic page (paper with halftone dots, white panels with black ink borders and hard shadows, yellow caption boxes, sticker buttons). *Stage* is a dark spotlight look with a glowing ring. Switch any time in **Settings → Look**.
 - **Illustrated consoles.** Every system is shown as a poster with its console. Drop your **own photos** (`snes.png`, `psx.png`…) in a folder and the program turns them into comic art (background removed, bold outline) — or shows them untouched.
@@ -13,7 +13,7 @@
 
 ## Library
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-list.webp" alt="Game list with covers" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-search.webp" alt="Smart search" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-list.webp" alt="Game list with covers" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-search.webp" alt="Smart search" width="49%">
 
 - **Large collections.** Scans huge sets in the background (tested on 54,000 files) and keeps an index, so the list opens instantly.
 - **Smart search.** Type with a joystick: the on-screen keyboard greys out letters that lead to no title, results appear as you type, with the cover of the first hit. Numbers and one/two-letter words match at the start of a word, so "2" does not find "1942".
@@ -35,7 +35,7 @@
 
 ## Setup and care
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-diag.webp" alt="Diagnostics" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-pc.webp" alt="Your PC" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-diag.webp" alt="Diagnostics" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-pc.webp" alt="Your PC" width="49%">
 
 - **First-run guide** and **core download** — [Getting started](Getting-Started).
 - **Finds RetroArch and MAME** if they are already on your PC and links to their official sites if not. The program never downloads or runs other programs by itself.

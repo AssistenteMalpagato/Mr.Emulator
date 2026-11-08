@@ -2,7 +2,7 @@
 
 # 🖥️ Screen & image quality
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-screen.webp" alt="Screen settings" width="720">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-screen.webp" alt="Screen settings" width="720">
 
 Everything here lives in **Your PC** (general mode) and **Settings → Screen**.
 

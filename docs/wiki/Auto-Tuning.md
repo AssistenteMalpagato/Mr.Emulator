@@ -2,7 +2,7 @@
 
 # ⚡ Auto-tuning
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/levels.svg" alt="Light, Balanced and Maximum levels" width="100%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/levels.svg" alt="Light, Balanced and Maximum levels" width="100%">
 
 Mr. Emulator is meant to run on everything from an old laptop with 6–8 GB of RAM and a small graphics card to a strong desktop. So it never uses one fixed configuration: it **detects your hardware and picks the settings per system**.
 

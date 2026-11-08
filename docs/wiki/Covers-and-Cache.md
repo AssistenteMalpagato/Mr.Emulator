@@ -2,7 +2,7 @@
 
 # 🖼️ Covers & image cache
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-covers.webp" alt="Covers settings" width="720">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-covers.webp" alt="Covers settings" width="720">
 
 ## Where covers come from
 

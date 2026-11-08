@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/banner.svg" alt="Mr. Emulator — your personal arcade cabinet" width="100%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/banner.svg" alt="Mr. Emulator — your personal arcade cabinet" width="100%">
 
 **English** · [Italiano](IT-Home)
 
@@ -11,7 +11,7 @@
 Mr. Emulator is a **free launcher for arcade and classic console games on Windows**, made for people who want to **play, not configure**. You pick a system, you pick a game, you play. Behind the scenes it drives proven open-source emulators — [RetroArch](https://www.retroarch.com/) cores and standalone [MAME](https://www.mamedev.org/) — and it tunes them for the PC you are sitting at.
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-home.webp" alt="System select screen, comic style" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-list.webp" alt="Game list with covers" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-home.webp" alt="System select screen, comic style" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-list.webp" alt="Game list with covers" width="49%">
 </div>
 
 > **It does not include, download or distribute ROMs, BIOS files or emulators.** You bring your own legally obtained files. See [Privacy & Legal](Privacy-and-Legal).
@@ -28,7 +28,7 @@ Mr. Emulator is a **free launcher for arcade and classic console games on Window
 | 🔎 **Instant search** | A smart on-screen keyboard that greys out letters leading nowhere — fast on 60,000 titles and usable with a joystick. |
 | 🩺 **Diagnostics** | One screen tells you what is missing and how to fix it, and gives you a text report to share. |
 
-<div align="center"><img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/how-it-works.svg" alt="How Mr. Emulator works" width="100%"></div>
+<div align="center"><img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/how-it-works.svg" alt="How Mr. Emulator works" width="100%"></div>
 
 ## Where to start
 
@@ -50,4 +50,4 @@ Mr. Emulator is a **free launcher for arcade and classic console games on Window
 | See what is done and what is next | [Roadmap & releases](Roadmap-and-Releases) |
 
 ---
-<sub>Mr. Emulator is MIT-licensed and made by **Assistente Malpagato software**. Roadmap: [`docs/ROADMAP.md`](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/ROADMAP.md) · Release notes: [`docs/RELEASE_NOTES.md`](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/RELEASE_NOTES.md).</sub>
+<sub>Mr. Emulator is MIT-licensed and made by **Assistente Malpagato software**. Roadmap: [`docs/ROADMAP.md`](https://github.com/AssistenteMalpagato/Mr.Emulator/blob/main/docs/ROADMAP.md) · Release notes: [`docs/RELEASE_NOTES.md`](https://github.com/AssistenteMalpagato/Mr.Emulator/blob/main/docs/RELEASE_NOTES.md).</sub>

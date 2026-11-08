@@ -14,7 +14,7 @@ test('confronto tra versioni', () => {
 })
 
 test('aggiornamento: solo se la release è più recente e vera', async () => {
-  const rel = { tag_name: 'v0.1.5', html_url: 'https://github.com/VjAlbert/Mr.Emulator/releases/tag/v0.1.5' }
+  const rel = { tag_name: 'v0.1.5', html_url: 'https://github.com/AssistenteMalpagato/Mr.Emulator/releases/tag/v0.1.5' }
   assert.deepEqual(await checkForUpdate('0.1.4', reply(rel)), { version: '0.1.5', url: rel.html_url })
   assert.equal(await checkForUpdate('0.1.5', reply(rel)), null)
   assert.equal(await checkForUpdate('0.1.4', reply({ ...rel, draft: true })), null)
@@ -23,5 +23,5 @@ test('aggiornamento: solo se la release è più recente e vera', async () => {
   assert.equal(await checkForUpdate('0.1.4', (async () => { throw new Error('offline') }) as unknown as typeof fetch), null)
   // un indirizzo che non è del progetto non si segue
   const strano = await checkForUpdate('0.1.4', reply({ tag_name: 'v9.9.9', html_url: 'https://sito-strano.example/scarica' }))
-  assert.equal(strano?.url, 'https://github.com/VjAlbert/Mr.Emulator/releases/latest')
+  assert.equal(strano?.url, 'https://github.com/AssistenteMalpagato/Mr.Emulator/releases/latest')
 })

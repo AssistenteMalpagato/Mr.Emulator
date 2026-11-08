@@ -2,7 +2,7 @@
 
 # ⚡ Autoguida
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/levels-it.svg" alt="Livelli Leggero, Bilanciato e Massimo" width="100%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/levels-it.svg" alt="Livelli Leggero, Bilanciato e Massimo" width="100%">
 
 Mr. Emulator deve funzionare dal vecchio portatile con 6–8 GB di RAM e una piccola scheda video fino a un desktop potente. Per questo non usa mai una configurazione fissa: **riconosce l'hardware e sceglie le impostazioni per ogni sistema**.
 

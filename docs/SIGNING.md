@@ -7,7 +7,7 @@ This is what has to be done **by the maintainer** to turn on installer signing. 
 ## 1. Apply to SignPath Foundation (free for open source)
 
 1. Go to <https://signpath.org/foundation> (the *Apply* link) and sign up.
-2. Provide: repository URL (`https://github.com/VjAlbert/Mr.Emulator`), licence (MIT), a short description, and the link to the **code signing policy**: <https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/CODE_SIGNING_POLICY.md>.
+2. Provide: repository URL (`https://github.com/AssistenteMalpagato/Mr.Emulator`), licence (MIT), a short description, and the link to the **code signing policy**: <https://github.com/AssistenteMalpagato/Mr.Emulator/blob/main/docs/CODE_SIGNING_POLICY.md>.
 3. Be ready to confirm that the project is open source, maintained, free of malware, and built on a GitHub-hosted runner (it is: `release.yml`).
 4. Wait for the approval. This can take days to weeks.
 

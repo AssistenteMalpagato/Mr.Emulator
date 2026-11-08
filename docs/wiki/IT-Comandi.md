@@ -2,7 +2,7 @@
 
 # 🕹️ Comandi
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-controls.webp" alt="Schermata dei comandi" width="720">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-controls.webp" alt="Schermata dei comandi" width="720">
 
 Mr. Emulator si usa interamente con **tastiera, mouse, gamepad o pannello arcade**, e scrive le impostazioni dei comandi per RetroArch **e** per MAME: quello che configuri una volta vale ovunque.
 

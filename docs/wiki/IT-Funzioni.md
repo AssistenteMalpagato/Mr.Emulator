@@ -4,7 +4,7 @@
 
 ## Aspetto
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-home.webp" alt="Stile fumetto" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-stage-home.webp" alt="Stile palcoscenico" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-home.webp" alt="Stile fumetto" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-stage-home.webp" alt="Stile palcoscenico" width="49%">
 
 - **Due stili completi.** *Fumetto* trasforma tutto il programma in una pagina di fumetto (carta con retino, pannelli bianchi con bordo di china e ombra netta, didascalie gialle, pulsanti-adesivo). *Palcoscenico* è un look scuro con riflettore e anello luminoso. Si cambia quando vuoi in **Impostazioni → Aspetto**.
 - **Console illustrate.** Ogni sistema è un poster con la sua console. Metti le **tue foto** (`snes.png`, `psx.png`…) in una cartella e il programma le trasforma in stile fumetto (sfondo tolto, contorno nero) — oppure le mostra così come sono.
@@ -13,7 +13,7 @@
 
 ## Libreria
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-list.webp" alt="Elenco con copertine" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-search.webp" alt="Ricerca intelligente" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-list.webp" alt="Elenco con copertine" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-search.webp" alt="Ricerca intelligente" width="49%">
 
 - **Raccolte enormi.** Scansione in background di set giganteschi (provata su 54.000 file) con indice salvato: l'elenco si apre all'istante.
 - **Ricerca intelligente.** Si scrive col joystick: la tastiera sullo schermo spegne le lettere che non portano a nessun titolo, i risultati compaiono mentre scrivi, con la copertina del primo. Numeri e parole di 1-2 lettere devono cominciare una parola, quindi «2» non trova «1942».
@@ -35,7 +35,7 @@
 
 ## Installazione e cura
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-diag.webp" alt="Diagnostica" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-pc.webp" alt="Il tuo PC" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-diag.webp" alt="Diagnostica" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-pc.webp" alt="Il tuo PC" width="49%">
 
 - **Guida al primo avvio** e **download dei core** — [Primi passi](IT-Primi-Passi).
 - **Trova RetroArch e MAME** se sono già sul PC e rimanda ai siti ufficiali se mancano. Il programma non scarica né avvia altri programmi da solo.

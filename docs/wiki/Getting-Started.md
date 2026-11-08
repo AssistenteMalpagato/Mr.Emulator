@@ -2,11 +2,11 @@
 
 # 🚀 Getting started
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-firstrun.webp" alt="First-run guide" width="720">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-firstrun.webp" alt="First-run guide" width="720">
 
 ## 1. Install
 
-1. Download `Mr-Emulator-Setup-<version>.exe` from the [latest release](https://github.com/VjAlbert/Mr.Emulator/releases/latest).
+1. Download `Mr-Emulator-Setup-<version>.exe` from the [latest release](https://github.com/AssistenteMalpagato/Mr.Emulator/releases/latest).
 2. Run it. Windows may show *"Windows protected your PC"* because the app is not signed with a paid certificate yet — click **More info → Run anyway**.
 3. Start Mr. Emulator. The **first-run guide** opens by itself.
 
@@ -31,7 +31,7 @@ You can skip the guide and run it again any time from the bottom of **Settings**
 3. Pick a game. The right side shows the cover, the title and — if there is a save — the **Continue / New game** switch.
 4. **Enter** (or button 1) to launch. Exit with **Esc**, or **Select + Start** on a gamepad.
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-title.webp" alt="Title screen" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-home.webp" alt="System select" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-title.webp" alt="Title screen" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-home.webp" alt="System select" width="49%">
 
 ## 4. Make it yours
 

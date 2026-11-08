@@ -8,15 +8,15 @@
 
 <sub>**by Assistente Malpagato software**</sub>
 
-[![Download for Windows](https://img.shields.io/badge/%E2%AC%87_DOWNLOAD_FOR_WINDOWS-ff2d55?style=for-the-badge&logo=windows&logoColor=white&labelColor=1b1b2a)](https://github.com/VjAlbert/Mr.Emulator/releases/latest)
+[![Download for Windows](https://img.shields.io/badge/%E2%AC%87_DOWNLOAD_FOR_WINDOWS-ff2d55?style=for-the-badge&logo=windows&logoColor=white&labelColor=1b1b2a)](https://github.com/AssistenteMalpagato/Mr.Emulator/releases/latest)
 
-[![Latest release](https://img.shields.io/github/v/release/VjAlbert/Mr.Emulator?style=flat-square&color=ffd400&label=latest%20release)](https://github.com/VjAlbert/Mr.Emulator/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/VjAlbert/Mr.Emulator/total?style=flat-square&color=17c964)](https://github.com/VjAlbert/Mr.Emulator/releases)
+[![Latest release](https://img.shields.io/github/v/release/AssistenteMalpagato/Mr.Emulator?style=flat-square&color=ffd400&label=latest%20release)](https://github.com/AssistenteMalpagato/Mr.Emulator/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/AssistenteMalpagato/Mr.Emulator/total?style=flat-square&color=17c964)](https://github.com/AssistenteMalpagato/Mr.Emulator/releases)
 ![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![Cost](https://img.shields.io/badge/cost-%E2%82%AC0%20forever-red?style=flat-square)
 
-**English** · [Italiano](README.it.md) · 📖 **[Wiki](https://github.com/VjAlbert/Mr.Emulator/wiki)**
+**English** · [Italiano](README.it.md) · 📖 **[Wiki](https://github.com/AssistenteMalpagato/Mr.Emulator/wiki)**
 
 <img src="docs/img/title.png" width="720" alt="Mr. Emulator title screen">
 
@@ -34,7 +34,7 @@ A fast, flashy launcher for arcade and classic console games, built for people w
 
 ## Download
 
-> 1. Click the big **Download for Windows** button above (or open the [Releases](https://github.com/VjAlbert/Mr.Emulator/releases/latest) page) and download `Mr-Emulator-Setup-<version>.exe`.
+> 1. Click the big **Download for Windows** button above (or open the [Releases](https://github.com/AssistenteMalpagato/Mr.Emulator/releases/latest) page) and download `Mr-Emulator-Setup-<version>.exe`.
 > 2. Run it. The installer shows, in plain words, what you will need (RetroArch, BIOS files, your ROMs).
 > 3. Start Mr. Emulator: a **first-run guide** walks you through the rest.
 >
@@ -130,7 +130,7 @@ Something not working? Open **Settings → Diagnostics**: it tells you what is m
 ## Build from source
 
 ```bash
-git clone https://github.com/VjAlbert/Mr.Emulator.git
+git clone https://github.com/AssistenteMalpagato/Mr.Emulator.git
 cd Mr.Emulator
 npm install
 npm run dev        # run the app in development

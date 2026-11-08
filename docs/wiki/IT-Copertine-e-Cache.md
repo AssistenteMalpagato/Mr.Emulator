@@ -2,7 +2,7 @@
 
 # 🖼️ Copertine e cache delle immagini
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-covers.webp" alt="Impostazioni delle copertine" width="720">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-covers.webp" alt="Impostazioni delle copertine" width="720">
 
 ## Da dove arrivano
 

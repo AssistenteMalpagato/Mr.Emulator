@@ -2,7 +2,7 @@
 
 # 💾 Saves, trophies & cheats
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-saves.webp" alt="Saves settings" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-cheats.webp" alt="Trophies and cheats" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-saves.webp" alt="Saves settings" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-cheats.webp" alt="Trophies and cheats" width="49%">
 
 ## Saves — "Continue" instead of memory cards
 

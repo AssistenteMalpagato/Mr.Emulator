@@ -2,7 +2,7 @@
 
 # 🩺 Troubleshooting
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-diag.webp" alt="Diagnostics screen" width="720">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-diag.webp" alt="Diagnostics screen" width="720">
 
 **Start with Settings → Diagnostics.** It marks every check as ✔ OK, ⚠ attention or ✖ problem, and tells you how to fix it. Press **Copy the text** to share the full report (it also includes the last RetroArch/MAME logs and the image settings requested at the last game).
 
@@ -30,6 +30,6 @@
 2. Your **RetroArch version** and **MAME version**.
 3. What you did, what you expected, what happened. A screenshot helps.
 
-Open an [issue](https://github.com/VjAlbert/Mr.Emulator/issues) on GitHub.
+Open an [issue](https://github.com/AssistenteMalpagato/Mr.Emulator/issues) on GitHub.
 
 [◀ Comparison](Comparison) · [Next: Privacy & legal ▶](Privacy-and-Legal)

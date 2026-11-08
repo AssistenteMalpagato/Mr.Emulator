@@ -2,7 +2,7 @@
 
 # ⚙️ Settings reference
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-settings.webp" alt="Settings, General tab" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-look.webp" alt="Settings, Look tab" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-settings.webp" alt="Settings, General tab" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/en-look.webp" alt="Settings, Look tab" width="49%">
 
 Every option, tab by tab. Remember to press **SAVE** after changing anything (the buttons that act immediately — move the cache, back up saves, download cheats — do not need it).
 

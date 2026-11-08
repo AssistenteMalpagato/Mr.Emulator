@@ -2,7 +2,7 @@
 
 **English** · [Italiano](ROADMAP.it.md)
 
-> Open items are tracked as [GitHub Issues](https://github.com/VjAlbert/Mr.Emulator/issues) and on the project board. This page is the big picture. The Italian copy is [`ROADMAP.it.md`](ROADMAP.it.md).
+> Open items are tracked as [GitHub Issues](https://github.com/AssistenteMalpagato/Mr.Emulator/issues) and on the project board. This page is the big picture. The Italian copy is [`ROADMAP.it.md`](ROADMAP.it.md).
 
 Reference platform: **Windows**. The code keeps paths and process launching behind small modules so that other operating systems are not made impossible, but they are not a goal right now.
 
@@ -86,23 +86,23 @@ Systems: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 ## To do (by value)
 
 **Being verified on real hardware** — each has an issue with a test checklist
-- [ ] Console saves across more games: Continue / New game, `.prev` copy, per-console switch ([#1](https://github.com/VjAlbert/Mr.Emulator/issues/1))
-- [ ] Xbox gamepads and I-PAC encoders: exit, menu, manual mapping ([#2](https://github.com/VjAlbert/Mr.Emulator/issues/2))
-- [ ] Trophies with a real account ([#3](https://github.com/VjAlbert/Mr.Emulator/issues/3))
-- [ ] Cheats on games that have a cheat file ([#4](https://github.com/VjAlbert/Mr.Emulator/issues/4))
-- [ ] Pixel sharpness on more systems and PCs ([#5](https://github.com/VjAlbert/Mr.Emulator/issues/5))
+- [ ] Console saves across more games: Continue / New game, `.prev` copy, per-console switch ([#1](https://github.com/AssistenteMalpagato/Mr.Emulator/issues/1))
+- [ ] Xbox gamepads and I-PAC encoders: exit, menu, manual mapping ([#2](https://github.com/AssistenteMalpagato/Mr.Emulator/issues/2))
+- [ ] Trophies with a real account ([#3](https://github.com/AssistenteMalpagato/Mr.Emulator/issues/3))
+- [ ] Cheats on games that have a cheat file ([#4](https://github.com/AssistenteMalpagato/Mr.Emulator/issues/4))
+- [ ] Pixel sharpness on more systems and PCs ([#5](https://github.com/AssistenteMalpagato/Mr.Emulator/issues/5))
 - [x] Borders, screen modes and shaders tried on real RetroArch and screens
 - [x] PS3-clone gamepad (Xsail) tried: works
 - [x] MAME crashes on some games: fixed
 - [x] PlayStation resume (Crash Bandicoot): works
 
 **Next**
-- [ ] Signed installer — the last step after testing ([#6](https://github.com/VjAlbert/Mr.Emulator/issues/6))
-- [ ] More wiki pages and screenshots ([#7](https://github.com/VjAlbert/Mr.Emulator/issues/7))
-- [ ] Optional higher internal resolution for 3D consoles ([#8](https://github.com/VjAlbert/Mr.Emulator/issues/8))
+- [ ] Signed installer — the last step after testing ([#6](https://github.com/AssistenteMalpagato/Mr.Emulator/issues/6))
+- [ ] More wiki pages and screenshots ([#7](https://github.com/AssistenteMalpagato/Mr.Emulator/issues/7))
+- [ ] Optional higher internal resolution for 3D consoles ([#8](https://github.com/AssistenteMalpagato/Mr.Emulator/issues/8))
 
 **Postponed or excluded**
-- Mega CD and Sega Saturn ([#9](https://github.com/VjAlbert/Mr.Emulator/issues/9)); GameCube, Wii, PlayStation 2 and PSP ([#10](https://github.com/VjAlbert/Mr.Emulator/issues/10)): outside the current scope
+- Mega CD and Sega Saturn ([#9](https://github.com/AssistenteMalpagato/Mr.Emulator/issues/9)); GameCube, Wii, PlayStation 2 and PSP ([#10](https://github.com/AssistenteMalpagato/Mr.Emulator/issues/10)): outside the current scope
 - Replacing the Windows shell (booting without the desktop): postponed, risky without a clear way back
 - Demul and other stand-alone emulators: excluded — RetroArch cores are used (Flycast for Dreamcast and Naomi)
 - macOS and Linux: excluded

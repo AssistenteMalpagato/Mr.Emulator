@@ -6,7 +6,7 @@
   "main": "./out/main/index.js",
   "author": {
     "name": "Assistente Malpagato software",
-    "url": "https://github.com/VjAlbert/Mr.Emulator"
+    "url": "https://github.com/AssistenteMalpagato/Mr.Emulator"
   },
   "license": "MIT",
   "private": true,
@@ -75,9 +75,9 @@
       "artifactName": "Mr-Emulator-Setup-${version}.exe"
     }
   },
-  "homepage": "https://github.com/VjAlbert/Mr.Emulator",
+  "homepage": "https://github.com/AssistenteMalpagato/Mr.Emulator",
   "repository": {
     "type": "git",
-    "url": "https://github.com/VjAlbert/Mr.Emulator.git"
+    "url": "https://github.com/AssistenteMalpagato/Mr.Emulator.git"
   }
 }

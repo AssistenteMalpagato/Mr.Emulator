@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/banner-it.svg" alt="Mr. Emulator — il tuo cabinato arcade personale" width="100%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/banner-it.svg" alt="Mr. Emulator — il tuo cabinato arcade personale" width="100%">
 
 [English](Home) · **Italiano**
 
@@ -11,7 +11,7 @@
 Mr. Emulator è un **launcher gratuito per giochi arcade e console classiche su Windows**, pensato per chi vuole **giocare, non configurare**. Scegli un sistema, scegli un gioco, giochi. Dietro le quinte guida emulatori open source consolidati — i core di [RetroArch](https://www.retroarch.com/) e [MAME](https://www.mamedev.org/) autonomo — e li regola per il PC che hai davanti.
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-home.webp" alt="Schermata dei sistemi, stile fumetto" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-list.webp" alt="Elenco dei giochi con le copertine" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-home.webp" alt="Schermata dei sistemi, stile fumetto" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-list.webp" alt="Elenco dei giochi con le copertine" width="49%">
 </div>
 
 > **Non include, non scarica e non distribuisce ROM, BIOS o emulatori.** Usi i tuoi file ottenuti legalmente. Vedi [Privacy e note legali](IT-Privacy-e-Note-Legali).
@@ -28,7 +28,7 @@ Mr. Emulator è un **launcher gratuito per giochi arcade e console classiche su 
 | 🔎 **Ricerca istantanea** | Una tastiera intelligente che spegne le lettere inutili: veloce su 60.000 titoli e usabile con il joystick. |
 | 🩺 **Diagnostica** | Una schermata dice cosa manca e come rimediare, e dà un testo da condividere. |
 
-<div align="center"><img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/how-it-works-it.svg" alt="Come funziona Mr. Emulator" width="100%"></div>
+<div align="center"><img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/how-it-works-it.svg" alt="Come funziona Mr. Emulator" width="100%"></div>
 
 ## Da dove cominciare
 
@@ -50,4 +50,4 @@ Mr. Emulator è un **launcher gratuito per giochi arcade e console classiche su 
 | Vedere cosa è fatto e cosa viene dopo | [Roadmap e rilasci](IT-Roadmap-e-Rilasci) |
 
 ---
-<sub>Mr. Emulator è rilasciato con licenza MIT ed è fatto da **Assistente Malpagato software**. Roadmap: [`docs/ROADMAP.it.md`](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/ROADMAP.it.md) · Note di rilascio: [`docs/RELEASE_NOTES.md`](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/RELEASE_NOTES.md).</sub>
+<sub>Mr. Emulator è rilasciato con licenza MIT ed è fatto da **Assistente Malpagato software**. Roadmap: [`docs/ROADMAP.it.md`](https://github.com/AssistenteMalpagato/Mr.Emulator/blob/main/docs/ROADMAP.it.md) · Note di rilascio: [`docs/RELEASE_NOTES.md`](https://github.com/AssistenteMalpagato/Mr.Emulator/blob/main/docs/RELEASE_NOTES.md).</sub>

@@ -2,7 +2,7 @@ name: Bug report / Segnalazione di errore
 description: Something does not work as expected. English or Italian is fine. / Qualcosa non funziona come dovrebbe. Va bene italiano o inglese.
 title: "[Bug] "
 labels: ["bug", "needs-triage"]
-projects: ["VjAlbert/4"]
+projects: ["AssistenteMalpagato/4"]
 body:
   - type: markdown
     attributes:
