@@ -47,6 +47,9 @@ Open *Settings → Covers*. The card shows how many exist online ("not available
 ### Where are my saves? Can I move them to another PC?
 In the saves folder you chose (default next to the ROM folder). Use *Back up to a ZIP* and *Restore from a ZIP*. Saves are emulator states, so keep the same core/emulator versions on both PCs.
 
+### How do I reinstall from scratch?
+Uninstall from Windows (*Settings → Apps*) and answer **Yes** when the uninstaller asks whether to also delete the program's data: settings, game lists, cached images and logs (and the image cache if you moved it). Your games, BIOS files and saves are never deleted. If you answered No, delete `%APPDATA%\Mr. Emulator` by hand.
+
 ### Where are the settings and how do I reset them?
 In `%APPDATA%\Mr. Emulator\settings.json`. Close the program and rename that file to start from defaults (a `.bak` copy is also kept).
 

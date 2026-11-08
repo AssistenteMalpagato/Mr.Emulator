@@ -47,6 +47,9 @@ Apri *Impostazioni → Copertine*. La scheda mostra quante esistono online («no
 ### Dove sono i miei salvataggi? Posso portarli su un altro PC?
 Nella cartella dei salvataggi che hai scelto (predefinita: accanto alla cartella ROM). Usa *Backup in uno ZIP* e *Ripristina da uno ZIP*. I salvataggi sono stati dell'emulatore, quindi tieni le stesse versioni di core/emulatore su entrambi i PC.
 
+### Come reinstallo da zero?
+Disinstalla da Windows (*Impostazioni → App*) e rispondi **Sì** quando il disinstallatore chiede se eliminare anche i dati del programma: impostazioni, elenchi dei giochi, copertine in cache e registri (e la cache delle immagini se l'hai spostata). I tuoi giochi, i BIOS e i salvataggi non vengono mai cancellati. Se hai risposto No, cancella a mano `%APPDATA%\Mr. Emulator`.
+
 ### Dove sono le impostazioni e come le azzero?
 In `%APPDATA%\Mr. Emulator\settings.json`. Chiudi il programma e rinomina quel file per ripartire dai valori predefiniti (viene conservata anche una copia `.bak`).
 

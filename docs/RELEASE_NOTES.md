@@ -1,3 +1,11 @@
+## Mr. Emulator 0.2.14
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🧹 **Clean uninstall**: the uninstaller now asks whether to also delete the program's settings, game lists, cached images and logs (and the image cache if you moved it to another drive), so a reinstall starts completely fresh. Your games, BIOS files and saves are **never** deleted. Nothing is asked during updates or silent uninstalls.
+- ℹ️ The app identifier changed (`it.assistentemalpagato.mremulator`) after the GitHub account rename: an older installed version may stay listed in *Installed apps* next to the new one — uninstall the old one.
+
 ## Mr. Emulator 0.2.13
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.

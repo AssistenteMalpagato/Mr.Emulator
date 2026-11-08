@@ -129,3 +129,11 @@ test('copertine: i giochi senza copertina online e l\'ultima ricerca si ricordan
   assert.equal(Object.keys(readCoverRuns()).length, 2)
   setArtRoot('')
 })
+
+test('disinstallatore: l\'elenco delle cartelle da togliere contiene solo la cache spostata', async () => {
+  const { cleanupList } = await import('../src/main/cache')
+  assert.deepEqual(cleanupList(''), [])
+  assert.deepEqual(cleanupList('D:\\Dati'), [join('D:\\Dati', 'MrEmulator-artwork')])
+  // mai cartelle di giochi o salvataggi
+  assert.ok(cleanupList('D:\\Dati').every((p) => p.endsWith('MrEmulator-artwork')))
+})

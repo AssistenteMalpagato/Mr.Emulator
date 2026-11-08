@@ -153,6 +153,14 @@ export function mergeDir(from: string, to: string): void {
   rmSync(a, { recursive: true, force: true })
 }
 
+/**
+ * Cartelle create dal programma FUORI dai suoi dati (oggi: la cache delle immagini se è stata spostata).
+ * Il disinstallatore legge questo elenco per offrire una pulizia completa; mai giochi, BIOS o salvataggi.
+ */
+export function cleanupList(cacheDir: string): string[] {
+  return cacheDir ? [join(cacheDir, 'MrEmulator-artwork')] : []
+}
+
 export interface MoveResult {
   ok: boolean
   error?: string

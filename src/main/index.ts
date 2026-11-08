@@ -22,7 +22,7 @@ import { setHighPerformanceGpu } from './gpuPref'
 import { buildInputConfig, buildInputMap, buildMameCtrlr, presetControls } from './inputs'
 import { ART_SCHEME, artRoot, setArtRoot, arcadeTitles, clearArtMisses, clearLocalArt, coverCount, coverMisses, readCoverRuns, saveCoverRun, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
 import { MediaSource } from './media'
-import { cacheStats, clearImages, clearLocalCopies, mergeDir, moveCache, optimizeCache, pruneCache } from './cache'
+import { cacheStats, cleanupList, clearImages, clearLocalCopies, mergeDir, moveCache, optimizeCache, pruneCache } from './cache'
 import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
@@ -762,6 +762,12 @@ app.whenReady().then(async () => {
   const cacheDirOf = (dir: string): string => (dir ? join(dir, 'MrEmulator-artwork') : '')
   const applyCacheDir = (s: Settings): void => {
     setArtRoot(cacheDirOf(s.cacheDir))
+    // elenco per il disinstallatore (pulizia completa facoltativa)
+    try {
+      writeFileSync(join(app.getPath('userData'), 'cleanup.txt'), cleanupList(s.cacheDir).join('\r\n'), 'utf-8')
+    } catch {
+      // non è essenziale
+    }
     // cache spostata: le foto delle console (prima nei dati del programma) la seguono
     if (s.cacheDir) {
       try {
