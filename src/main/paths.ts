@@ -2,9 +2,10 @@ import { join } from 'path'
 import type { Settings, SystemDef } from '@shared/types'
 
 /** Cartella dei giochi di un sistema. Per MAME può essere una cartella dedicata (anche su un altro disco). */
-export function systemDir(system: SystemDef, s: Pick<Settings, 'romsDir' | 'mameRomDir'>): string {
+export function systemDir(system: SystemDef, s: Pick<Settings, 'romsDir' | 'mameRomDir'> & { folderBySystem?: Record<string, string> }): string {
   if (system.engine === 'mame' && s.mameRomDir) return s.mameRomDir
-  return join(s.romsDir, system.folder)
+  // cartella con un nome diverso da quello standard (riconosciuta in una raccolta già esistente)
+  return join(s.romsDir, s.folderBySystem?.[system.id] ?? system.folder)
 }
 
 /**

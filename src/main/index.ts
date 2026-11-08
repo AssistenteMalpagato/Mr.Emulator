@@ -14,7 +14,8 @@ import { demoGames } from './scanner'
 import { createLibrary } from './library'
 import { launchGame } from './launcher'
 import { platform } from './platform'
-import { ensureFolders } from './folders'
+import { defaultRoot, ensureFolders, withDefaultPaths } from './folders'
+import { detectFolders, findBiosDir } from './folderDetect'
 import { detectHardware } from './hardware'
 import { buildReport, mameProfileFor, profileFor, sharpnessInfo } from './optimize'
 import { toConfigText } from './profiles'
@@ -22,7 +23,7 @@ import { setHighPerformanceGpu } from './gpuPref'
 import { buildInputConfig, buildInputMap, buildMameCtrlr, presetControls } from './inputs'
 import { ART_SCHEME, artRoot, setArtRoot, arcadeTitles, clearArtMisses, clearLocalArt, coverCount, coverMisses, readCoverRuns, saveCoverRun, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
 import { MediaSource } from './media'
-import { cacheStats, clearImages, clearLocalCopies, mergeDir, moveCache, optimizeCache, pruneCache } from './cache'
+import { cacheStats, cleanupList, clearImages, clearLocalCopies, mergeDir, moveCache, optimizeCache, pruneCache } from './cache'
 import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
@@ -300,7 +301,8 @@ app.whenReady().then(async () => {
     if (!current.romsDir || !current.biosDir) {
       // primo avvio: se il PC è debole si parte con gli effetti dell'interfaccia ridotti
       const hw = await detectHardware(false)
-      saveSettings(ensureFolders({ ...current, lightEffects: hw.level === 'light' }))
+      // le cartelle NON si creano qui: lo decide l'utente nella guida (usare quelle che ha già, oppure farle creare)
+      saveSettings(withDefaultPaths({ ...current, lightEffects: hw.level === 'light' }))
     }
     await applyGpuPreference(loadSettings())
   }
@@ -427,10 +429,10 @@ app.whenReady().then(async () => {
     const saved = saveSettings(s)
     applyCacheDir(saved)
     void applyGpuPreference(saved)
-    try {
-      ensureFolders(saved) // se la cartella indicata non ha le sottocartelle, le crea
-    } catch {
-      // cartella non scrivibile: nessun problema, resta quella scelta dall'utente
+    // cartella ROM cambiata: si rilegge com'è fatta (nomi delle cartelle dei sistemi); non si crea nulla
+    if (before.romsDir !== saved.romsDir && saved.romsDir) {
+      const d = detectFolders(saved.romsDir)
+      return saveSettings({ ...saved, folderBySystem: d.overrides })
     }
     // un MAME diverso può comportarsi diversamente: le scelte prudenti ricordate si azzerano
     if (before.mamePath !== saved.mamePath && (Object.keys(saved.launchFix).length || saved.launchFloor)) saveSettings({ ...saved, launchFix: {}, launchFloor: 0 })
@@ -475,7 +477,7 @@ app.whenReady().then(async () => {
   // "tutto su un altro disco": ROM, BIOS e cartella MAME di questa versione dentro la cartella scelta
   ipcMain.handle('folders:setup-root', async (_e, rootDir: string) => {
     const s = loadSettings()
-    const next: Settings = { ...s, romsDir: join(rootDir, 'roms'), biosDir: join(rootDir, 'bios'), mameRomDir: '' }
+    const next: Settings = { ...s, romsDir: join(rootDir, 'roms'), biosDir: join(rootDir, 'bios'), mameRomDir: '', folderBySystem: {} }
     mkdirSync(next.romsDir, { recursive: true })
     const r = s.mamePath ? await mameVersionFolder(next) : null
     if (r?.ok) next.mameRomDir = r.path
@@ -484,10 +486,34 @@ app.whenReady().then(async () => {
     library.rescan(true)
     return saved
   })
+  // fine della guida senza aver scelto nulla: se la cartella predefinita non esiste si crea (mai dentro una cartella che esiste già)
+  ipcMain.handle('folders:ensure-default', () => {
+    const s = loadSettings()
+    if (s.romsDir && existsSync(s.romsDir)) return s
+    const next = saveSettings(ensureFolders(s))
+    library.rescan(false)
+    return next
+  })
+  // cartella di giochi già esistente: la si legge così com'è e si riconoscono le cartelle dei sistemi (nessuna creazione)
+  ipcMain.handle('folders:use-existing', (_e, dir: string) => {
+    const s = loadSettings()
+    const d = detectFolders(dir)
+    const bios = findBiosDir(dir)
+    const saved = saveSettings({ ...s, romsDir: dir, mameRomDir: '', folderBySystem: d.overrides, biosDir: bios || s.biosDir || join(defaultRoot(), 'bios') })
+    void applyGpuPreference(saved)
+    library.rescan(true)
+    return { settings: saved, found: d.found, unknown: d.unknown }
+  })
   ipcMain.handle('folder:open', async (_e, target: string) => {
-    const s = ensureFolders(loadSettings())
+    const s = loadSettings()
     const sys = SYSTEMS.find((x) => x.id === target)
     const dir = target === 'bios' ? s.biosDir : sys ? systemDir(sys, s) : s.romsDir
+    // solo la cartella richiesta, e solo se manca: niente struttura intera
+    try {
+      mkdirSync(dir, { recursive: true })
+    } catch {
+      // disco non scrivibile: si prova lo stesso ad aprirla
+    }
     await shell.openPath(dir)
   })
 
@@ -741,7 +767,7 @@ app.whenReady().then(async () => {
     return loadSettings().checkUpdates ? update : null
   })
   ipcMain.handle('update:open', async () => {
-    if (update && update.url.startsWith('https://github.com/VjAlbert/Mr.Emulator/')) await shell.openExternal(update.url)
+    if (update && update.url.startsWith('https://github.com/AssistenteMalpagato/Mr.Emulator/')) await shell.openExternal(update.url)
   })
   ipcMain.handle('app:version', () => app.getVersion())
   ipcMain.handle('app:quit', () => {
@@ -762,6 +788,12 @@ app.whenReady().then(async () => {
   const cacheDirOf = (dir: string): string => (dir ? join(dir, 'MrEmulator-artwork') : '')
   const applyCacheDir = (s: Settings): void => {
     setArtRoot(cacheDirOf(s.cacheDir))
+    // elenco per il disinstallatore (pulizia completa facoltativa)
+    try {
+      writeFileSync(join(app.getPath('userData'), 'cleanup.txt'), cleanupList(s.cacheDir).join('\r\n'), 'utf-8')
+    } catch {
+      // non è essenziale
+    }
     // cache spostata: le foto delle console (prima nei dati del programma) la seguono
     if (s.cacheDir) {
       try {

@@ -28,6 +28,9 @@ export function setLang(setting: LangSetting): void {
 
 export const getLang = (): Lang => lang
 
+/** Lingua per formattare numeri e date (1.234 in italiano, 1,234 in inglese) */
+export const numLocale = (): string => (lang === 'it' ? 'it' : 'en')
+
 /**
  * Traduce una frase. La chiave è il testo in italiano (la lingua originale del programma):
  * in italiano si mostra così com'è, in inglese si cerca nel dizionario (e se manca resta in italiano).

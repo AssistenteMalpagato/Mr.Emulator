@@ -38,5 +38,5 @@ Non preoccuparti: al primo avvio una procedura guidata ti accompagna passo per p
 Premi "Accetto" per continuare con l'installazione.
 
 ------------------------------------------------------------
-LICENZA (MIT) — Copyright (c) VjAlbert
+LICENZA (MIT) — Copyright (c) AssistenteMalpagato
 Il permesso è concesso gratuitamente a chiunque ottenga una copia di questo software di usarlo, copiarlo, modificarlo e distribuirlo senza restrizioni, a condizione di mantenere questo avviso. Il software è fornito "così com'è", senza alcuna garanzia. Mr. Emulator non include né distribuisce ROM o BIOS.

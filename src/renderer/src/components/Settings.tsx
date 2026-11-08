@@ -6,7 +6,7 @@ import type { ArtBulkState, CacheStats, CoverCount, DiagnosticReport, ImageStyle
 import { ToolFinder } from './ToolFinder'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
-import { getLang, setLang, t } from '../i18n'
+import { getLang, numLocale, setLang, t } from '../i18n'
 
 type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath' | 'overlayDir' | 'savesDir' | 'cacheDir' | 'consoleImagesPath'
 
@@ -770,7 +770,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
                     <input type="checkbox" checked={!hidden} onChange={() => setS({ ...s, hiddenSystems: hidden ? s.hiddenSystems.filter((i) => i !== x.id) : [...s.hiddenSystems, x.id] })} />
                     <span className="sysopt-short">{x.short}</span>
                     <span className="sysopt-name">{x.name}</span>
-                    <span className="sysopt-count">{x.phase !== 1 ? t('in arrivo') : `${x.gameCount.toLocaleString('it')} giochi`}</span>
+                    <span className="sysopt-count">{x.phase !== 1 ? t('in arrivo') : t('{n} giochi', { n: x.gameCount.toLocaleString(numLocale()) })}</span>
                   </label>
                 )
               })}
@@ -782,8 +782,11 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           <span>Language / Lingua</span>
           <select
             value={s.language}
-            onChange={(e) => {
+            onChange={async (e) => {
               const language = e.target.value as Settings['language']
+              // si salva subito (come dalla schermata iniziale): cambiando lingua l'interfaccia si ricrea e il modulo tornerebbe ai valori salvati
+              const cur = await window.mr.getSettings()
+              await window.mr.saveSettings({ ...cur, language })
               setS({ ...s, language })
               setLang(language)
             }}
@@ -811,7 +814,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
               setMameInfo(t('Controllo in corso… (la prima volta può richiedere qualche secondo)'))
               await window.mr.saveSettings(s)
               const r = await window.mr.checkMame()
-              setMameInfo(r.ok ? `✔ MAME ${r.version} · ${r.machines.toLocaleString('it')} ${t('macchine riconosciute')}${r.warning ? ` — ⚠ ${r.warning}` : ''}` : `⚠ ${r.error ?? t('MAME non risponde')}`)
+              setMameInfo(r.ok ? `✔ MAME ${r.version} · ${r.machines.toLocaleString(numLocale())} ${t('macchine riconosciute')}${r.warning ? ` — ⚠ ${r.warning}` : ''}` : `⚠ ${r.error ?? t('MAME non risponde')}`)
             }}
           >
             {t('VERIFICA MAME')}
@@ -859,7 +862,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
               const r = await window.mr.analyzeMedia()
               if (r.error) return setMediaInfo([`⚠ ${r.error}`])
               const kindName = { boxart: t('Copertine'), snap: t('Schermate'), title: t('Titoli'), video: t('Video delle partite'), sound: t('Colonna sonora') } as const
-              const lines = r.found.map((f) => `✔ ${kindName[f.kind]}: ${f.name}${f.type === 'zip' ? t(' (archivio ZIP)') : ''} · ${f.count.toLocaleString('it')} ${f.kind === 'sound' ? t('cartelle di giochi') : f.kind === 'video' ? t('file') : t('immagini')}`)
+              const lines = r.found.map((f) => `✔ ${kindName[f.kind]}: ${f.name}${f.type === 'zip' ? t(' (archivio ZIP)') : ''} · ${f.count.toLocaleString(numLocale())} ${f.kind === 'sound' ? t('cartelle di giochi') : f.kind === 'video' ? t('file') : t('immagini')}`)
               if (!r.found.length) lines.push(t('⚠ Non riconosco nessuna cartella di immagini, video o musica.'))
               if (r.unsupported.length) lines.push(`${t('⚠ Archivi che non so leggere (serve estrarli):')} ${r.unsupported.join(', ')}`)
               if (r.other.length) lines.push(`${t('Altre cartelle trovate (non usate):')} ${r.other.slice(0, 14).join(', ')}${r.other.length > 14 ? '…' : ''}`)

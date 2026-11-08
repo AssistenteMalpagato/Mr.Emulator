@@ -62,7 +62,7 @@ export function createZip(dest: string, files: ZipSource[]): number {
       ch.writeUInt32LE(offset, 42)
       central.push(Buffer.concat([ch, name]))
       offset += 30 + name.length + comp.length
-      if (offset > 0xf0000000) throw new Error('I salvataggi superano i 4 GB: non entrano in un solo ZIP')
+      if (offset > 0xf0000000) throw new Error(mt('I salvataggi superano i 4 GB: non entrano in un solo ZIP'))
     }
     const cd = Buffer.concat(central)
     const eo = Buffer.alloc(22)

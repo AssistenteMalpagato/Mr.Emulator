@@ -8,9 +8,9 @@
 
 <sub>**by Assistente Malpagato software**</sub>
 
-[![Scarica per Windows](https://img.shields.io/badge/%E2%AC%87_SCARICA_PER_WINDOWS-ff2d55?style=for-the-badge&logo=windows&logoColor=white&labelColor=1b1b2a)](https://github.com/VjAlbert/Mr.Emulator/releases/latest)
+[![Scarica per Windows](https://img.shields.io/badge/%E2%AC%87_SCARICA_PER_WINDOWS-ff2d55?style=for-the-badge&logo=windows&logoColor=white&labelColor=1b1b2a)](https://github.com/AssistenteMalpagato/Mr.Emulator/releases/latest)
 
-[English](README.md) · **Italiano** · 📖 **[Wiki](docs/wiki/it/Home.md)**
+[English](README.md) · **Italiano** · 📖 **[Wiki](https://github.com/AssistenteMalpagato/Mr.Emulator/wiki/IT-Home)**
 
 <img src="docs/img/title.png" width="720" alt="Schermata iniziale">
 
@@ -24,7 +24,7 @@ Un launcher grafico veloce e spettacolare per giochi arcade e console classiche,
 
 ## Scarica e installa
 
-1. Premi il grande pulsante **Scarica per Windows** qui sopra (o apri la pagina [Releases](https://github.com/VjAlbert/Mr.Emulator/releases/latest)) e scarica `Mr-Emulator-Setup-<versione>.exe`.
+1. Premi il grande pulsante **Scarica per Windows** qui sopra (o apri la pagina [Releases](https://github.com/AssistenteMalpagato/Mr.Emulator/releases/latest)) e scarica `Mr-Emulator-Setup-<versione>.exe`.
 2. Avvialo: l'installer mostra in italiano cosa ti serve (RetroArch, BIOS, ROM).
 3. Apri Mr. Emulator: una **procedura guidata** ti accompagna passo per passo.
 
@@ -77,7 +77,7 @@ Se qualcosa non va: **Impostazioni → Diagnostica**.
 ## Costruire dal codice
 
 ```bash
-git clone https://github.com/VjAlbert/Mr.Emulator.git
+git clone https://github.com/AssistenteMalpagato/Mr.Emulator.git
 cd Mr.Emulator
 npm install
 npm run dev     # avvia in sviluppo
@@ -85,8 +85,12 @@ npm test        # test automatici
 npm run dist    # installer per Windows (su Windows) → release\
 ```
 
+## 🔏 Firma digitale
+
+L'installer per Windows **non è ancora firmato**; si sta preparando la domanda al programma gratuito per progetti open source di SignPath Foundation. Vedi la [politica di firma](docs/CODE_SIGNING_POLICY.md) (in inglese) e la [guida](docs/SIGNING.md).
+
 ## ⚖️ ROM e BIOS
 
 **Mr. Emulator non include, non scarica e non distribuisce ROM né BIOS.** Funziona con i file che possiedi e che hai ottenuto legalmente. Questo repository non conterrà mai materiale protetto da copyright.
 
-Licenza: [MIT](LICENSE) · Roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md)
+Licenza: [MIT](LICENSE) · Roadmap: [`docs/ROADMAP.it.md`](docs/ROADMAP.it.md)

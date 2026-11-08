@@ -1,4 +1,5 @@
 import { inflateRawSync } from 'zlib'
+import { mt } from './mt'
 import { promises as fsp } from 'fs'
 
 export interface ZipInfo {
@@ -132,7 +133,7 @@ export async function readZipEntry(file: string, e: ZipEntry): Promise<Buffer> {
   try {
     const head = Buffer.alloc(30)
     await fh.read(head, 0, 30, e.offset)
-    if (head.readUInt32LE(0) !== 0x04034b50) throw new Error('intestazione ZIP non valida')
+    if (head.readUInt32LE(0) !== 0x04034b50) throw new Error(mt('intestazione ZIP non valida'))
     const start = e.offset + 30 + head.readUInt16LE(26) + head.readUInt16LE(28)
     const raw = Buffer.alloc(e.csize)
     await fh.read(raw, 0, e.csize, start)

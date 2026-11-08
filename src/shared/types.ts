@@ -75,6 +75,14 @@ export interface CoverCount {
   last: { found: number; total: number; at: number } | null
 }
 
+/** Un sistema riconosciuto in una cartella di giochi già esistente */
+export interface FolderMatch {
+  id: string
+  name: string
+  folder: string
+  files: number
+}
+
 export interface CacheStats {
   dir: string
   total: number
@@ -193,6 +201,8 @@ export interface Settings {
   savesDir: string
   /** Console: salva da sola lo stato all'uscita e propone di continuare all'avvio (sostituisce la Memory Card) */
   resumeConsoles: boolean
+  /** Cartelle dei sistemi che hanno un nome diverso da quello standard (id del sistema -> nome della cartella dentro la cartella ROM) */
+  folderBySystem: Record<string, string>
   /** Cartella da cui leggere le foto delle console (vuota = quella standard, vicino alla cache) */
   consoleImagesPath: string
   /** Cartella dove tenere la cache delle immagini (vuota = nei dati del programma); dentro si crea «MrEmulator-artwork» */
@@ -555,6 +565,9 @@ export interface MrApi {
   openFolder(target: 'roms' | 'bios' | string): Promise<void>
   /** Crea le cartelle ROM/BIOS mancanti e le imposta come predefinite */
   setupFolders(): Promise<Settings>
+  /** Usa una cartella di giochi già esistente: legge cosa c'è, non crea nulla */
+  ensureDefaultFolders(): Promise<Settings>
+  useExistingRoms(dir: string): Promise<{ settings: Settings; found: FolderMatch[]; unknown: string[] }>
   /** cachedOnly: restituisce solo ciò che è già salvato, senza scaricare niente */
   getArt(game: Game, kind: ArtKind, cachedOnly?: boolean): Promise<string | null>
 }

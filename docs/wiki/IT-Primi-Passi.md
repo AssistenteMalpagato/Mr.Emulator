@@ -1,12 +1,12 @@
-[◀ Home](Home.md) · **Primi passi**
+[◀ Home](IT-Home) · **Primi passi**
 
 # 🚀 Primi passi
 
-<img src="../img/it-firstrun.webp" alt="Guida al primo avvio" width="720">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-firstrun-1-language.webp" alt="Guida al primo avvio: scelta della lingua" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-firstrun-3-games.webp" alt="Guida al primo avvio: cartella dei giochi" width="49%">
 
 ## 1. Installa
 
-1. Scarica `Mr-Emulator-Setup-<versione>.exe` dall'[ultima release](https://github.com/VjAlbert/Mr.Emulator/releases/latest).
+1. Scarica `Mr-Emulator-Setup-<versione>.exe` dall'[ultima release](https://github.com/AssistenteMalpagato/Mr.Emulator/releases/latest).
 2. Avvialo. Windows può mostrare *«Windows ha protetto il PC»* perché il programma non ha ancora una firma digitale a pagamento: premi **Ulteriori informazioni → Esegui comunque**.
 3. Apri Mr. Emulator: la **guida al primo avvio** parte da sola.
 
@@ -14,7 +14,8 @@
 
 | Passo | Cosa fa | Cosa fai tu |
 |---|---|---|
-| **Cartella dei giochi** | Crea una sottocartella per sistema (`nes`, `snes`, `megadrive`, `psx`…) in `Documenti\MrEmulator` o sul disco che scegli. | Copia le tue ROM nelle cartelle. Scegli un altro disco se preferisci. |
+| **Lingua** | Scegli **Italiano** o **English**: tutta la guida e il programma proseguono in quella lingua. | Sceglila (puoi cambiarla quando vuoi dalle Impostazioni). |
+| **Cartella dei giochi** | **Legge la cartella che hai già** — non crea, sposta o cancella nulla — e riconosce le cartelle dei sistemi dai nomi comuni («SNES», «Genesis», «PlayStation»…). Oppure crea una struttura già pronta in `Documenti\MrEmulator` o su un altro disco. | Scegli *Ho già una cartella con i giochi*, oppure fai creare le cartelle se parti da zero. |
 | **RetroArch** | Cerca `retroarch.exe` nei posti comuni e te lo propone. | Se non lo trova, scaricalo da [retroarch.com](https://www.retroarch.com/) (Windows 64 bit, si estrae e basta) e premi **Sfoglia**. |
 | **Core** | Con un clic scarica i core che ti servono dall'archivio ufficiale di libretro. | Spunta i sistemi che usi. |
 | **BIOS** | Mostra l'elenco dei file necessari a ogni sistema e verifica quelli noti con il checksum. | Copia i BIOS mancanti nella cartella `bios`. |
@@ -31,7 +32,7 @@ Puoi saltare la guida e rifarla quando vuoi dal fondo delle **Impostazioni**.
 3. Scegli un gioco. A destra vedi la copertina, il titolo e — se c'è un salvataggio — l'interruttore **Continua / Nuova partita**.
 4. **Invio** (o pulsante 1) per avviare. Si esce con **Esc**, oppure **Select + Start** sul gamepad.
 
-<img src="../img/it-title.webp" alt="Schermata iniziale" width="49%"> <img src="../img/it-home.webp" alt="Scelta del sistema" width="49%">
+<img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-title.webp" alt="Schermata iniziale" width="49%"> <img src="https://raw.githubusercontent.com/AssistenteMalpagato/Mr.Emulator/main/docs/wiki/img/it-home.webp" alt="Scelta del sistema" width="49%">
 
 ## 4. Rendilo tuo
 
@@ -42,6 +43,6 @@ Puoi saltare la guida e rifarla quando vuoi dal fondo delle **Impostazioni**.
 
 ## Qualcosa non va?
 
-Apri **Impostazioni → Diagnostica**: controlla cartelle, core, BIOS e l'ultimo registro di RetroArch, e ti dice cosa fare. Vedi [Problemi comuni](Troubleshooting.md).
+Apri **Impostazioni → Diagnostica**: controlla cartelle, core, BIOS e l'ultimo registro di RetroArch, e ti dice cosa fare. Vedi [Problemi comuni](IT-Problemi-Comuni).
 
-[Avanti: Tour delle funzioni ▶](Features.md)
+[Avanti: Tour delle funzioni ▶](IT-Funzioni)

@@ -45,6 +45,7 @@ const DEFAULTS: Settings = {
   savesDir: '',
   resumeConsoles: true,
   resumeArcade: {},
+  folderBySystem: {},
   cacheDir: '',
   consoleImagesPath: '',
   cacheMaxGb: 0,

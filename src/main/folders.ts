@@ -8,6 +8,14 @@ import { systemDir } from './paths'
 /** Cartella di lavoro predefinita: Documenti\MrEmulator */
 export const defaultRoot = (): string => join(app.getPath('documents'), 'MrEmulator')
 
+/** Percorsi predefiniti se non ne sono stati indicati: NON crea nulla sul disco */
+export function withDefaultPaths(s: Settings): Settings {
+  const next = { ...s }
+  if (!next.romsDir) next.romsDir = join(defaultRoot(), 'roms')
+  if (!next.biosDir) next.biosDir = join(defaultRoot(), 'bios')
+  return next
+}
+
 /** Crea (se mancano) la cartella ROM con una sottocartella per sistema e la cartella BIOS */
 export function ensureFolders(s: Settings): Settings {
   const next = { ...s }

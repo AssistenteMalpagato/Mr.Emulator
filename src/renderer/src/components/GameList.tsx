@@ -11,7 +11,7 @@ import { music } from '../music'
 import type { MediaTrack } from '@shared/types'
 import type { LibraryStats } from '@shared/types'
 import { decadeLabel, decadeOf, initialOf, matchAll, norm, splitTitle } from '../search'
-import { formatDate, formatDuration, getLang, t } from '../i18n'
+import { formatDate, formatDuration, getLang, numLocale, t } from '../i18n'
 
 /** Altezza di una riga (compreso lo spazio): la lista disegna solo quelle visibili */
 const ROW_H = 58
@@ -440,10 +440,10 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
             title={t('Famiglia di giochi (Tab per cambiarla)')}
             onChange={(e) => changeFamily(e.target.value)}
           >
-            <option value="">{t('Tutti (')}{games.length.toLocaleString('it')})</option>
+            <option value="">{t('Tutti (')}{games.length.toLocaleString(numLocale())})</option>
             {groups.map(([n, c]) => (
               <option key={n} value={n}>
-                {n} ({c.toLocaleString('it')})
+                {n} ({c.toLocaleString(numLocale())})
               </option>
             ))}
           </select>
@@ -467,7 +467,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
           </button>
         )}
         <span className="counter">
-          {list.length ? `${(index + 1).toLocaleString('it')} / ${list.length.toLocaleString('it')}` : ''}
+          {list.length ? `${(index + 1).toLocaleString(numLocale())} / ${list.length.toLocaleString(numLocale())}` : ''}
           {(query || activeFamily) && games.length !== list.length ? ` ${t('(su {n})', { n: games.length.toLocaleString(getLang() === 'it' ? 'it' : 'en') })}` : ''}
         </span>
       </header>
@@ -480,13 +480,13 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
                 <>
                   {stats && stats.total > 0 && stats.bios + stats.device >= Math.ceil(stats.total * 0.8) ? (
                     <>
-                      {t('Nella cartella ci sono')} <b>{stats.total.toLocaleString('it')} {t('ZIP, ma solo BIOS e dispositivi')}</b>{t(': mancano gli ZIP dei')} <b>{t('giochi')}</b>.
+                      {t('Nella cartella ci sono')} <b>{stats.total.toLocaleString(numLocale())} {t('ZIP, ma solo BIOS e dispositivi')}</b>{t(': mancano gli ZIP dei')} <b>{t('giochi')}</b>.
                       <br />
                       {t('Serve anche il pacchetto delle ROM dei giochi della stessa versione di MAME (')}{stats.version || 'quella in uso'}).
                     </>
                   ) : stats && stats.total > 0 && stats.unknown > 0 ? (
                     <>
-                      {t('Nella cartella ci sono')} {stats.total.toLocaleString('it')} {t('ZIP, ma')} <b>{stats.unknown.toLocaleString('it')} {t('non sono riconosciuti da questo MAME')}</b> ({stats.version}).
+                      {t('Nella cartella ci sono')} {stats.total.toLocaleString(numLocale())} {t('ZIP, ma')} <b>{stats.unknown.toLocaleString(numLocale())} {t('non sono riconosciuti da questo MAME')}</b> ({stats.version}).
                       <br />
                       {t('Di solito vuol dire che il set ROM è di un\'altra versione di MAME.')}
                     </>
