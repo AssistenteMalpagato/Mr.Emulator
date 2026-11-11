@@ -6,6 +6,7 @@ import { mkdirSync, writeFileSync } from 'fs'
 import type { Game, LaunchResult, Settings, SystemDef } from '@shared/types'
 import { platform } from './platform'
 import { systemDir } from './paths'
+import { archiveNames, looksLikeRawDump } from './naomi'
 import { mt } from './mt'
 
 /** Avvia RetroArch con il core giusto. Chiama onExit quando il gioco si chiude. */
@@ -46,11 +47,23 @@ export function launchGame(
   if (system.id === 'psx' && !has('scph5501.bin', 'scph5500.bin', 'scph5502.bin', 'scph1001.bin', 'scph7001.bin')) {
     return { ok: false, error: mt('Manca il BIOS PlayStation (per esempio scph5501.bin). Copialo nella cartella bios.') }
   }
-  if (system.id === 'dreamcast' && !has('dc_boot.bin')) {
+  // Flycast (Dreamcast, Naomi, Atomiswave) cerca i BIOS solo in <bios>\dc: un file messo altrove non lo trova
+  const hasDc = (name: string): boolean => existsSync(join(settings.biosDir, 'dc', name))
+  if (system.id === 'dreamcast' && !hasDc('dc_boot.bin')) {
     return { ok: false, error: mt('Manca il BIOS Dreamcast (dc_boot.bin, più dc_flash.bin). Copiali nella cartella bios\\dc.') }
   }
-  if ((system.id === 'naomi' || system.id === 'atomiswave') && !has('naomi.zip', 'awbios.zip')) {
-    return { ok: false, error: mt('Manca il BIOS Naomi / Atomiswave (naomi.zip, awbios.zip). Copialo nella cartella bios\\dc o accanto ai giochi.') }
+  if (system.id === 'naomi' && !hasDc('naomi.zip')) {
+    return { ok: false, error: mt('Manca il BIOS Naomi (naomi.zip). Copialo nella cartella bios\\dc: Flycast lo cerca solo lì.') }
+  }
+  if (system.id === 'atomiswave' && !hasDc('awbios.zip')) {
+    return { ok: false, error: mt('Manca il BIOS Atomiswave (awbios.zip). Copialo nella cartella bios\\dc: Flycast lo cerca solo lì.') }
+  }
+  // Naomi/Atomiswave: uno ZIP o 7z con dentro un solo .dat/.bin non è un set MAME e Flycast lo scarta
+  if ((system.id === 'naomi' || system.id === 'atomiswave') && /\.(zip|7z)$/i.test(game.path)) {
+    const names = archiveNames(game.path)
+    if (names && looksLikeRawDump(names)) {
+      return { ok: false, error: mt('Questo archivio contiene solo un file {ext}, non un set MAME. Per {name} serve uno ZIP con i file del set (nomi tipo epr-…, mpr-…), oppure il file {ext} estratto e messo direttamente nella cartella del sistema.', { ext: (/\.(\w+)$/.exec(names[0])?.[0] ?? '.dat').toLowerCase(), name: system.name }) }
+    }
   }
 
   // configurazione su misura per questo PC, questo schermo e questo sistema

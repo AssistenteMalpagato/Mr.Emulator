@@ -203,9 +203,24 @@ function mameSeq(n: string, b: Binding | undefined, extra: string[]): string {
       parts.push(`JOYCODE_${n}_${name}_${dir}_SWITCH`)
     }
   }
-  if (b?.hat) parts.push(`JOYCODE_${n}_HSWITCH_${b.hat.toUpperCase()}`)
+  // la croce direzionale in MAME si chiama HAT1UP / HAT1DOWN / HAT1LEFT / HAT1RIGHT (i nomi HSWITCH e DPAD non esistono e MAME li scarta in silenzio)
+  if (b?.hat) parts.push(`JOYCODE_${n}_HAT1${b.hat.toUpperCase()}`)
   if (b?.btn === undefined && !b?.axis && !b?.hat) parts.push(...extra)
   return parts.join(' OR ')
+}
+
+/**
+ * Direzioni del joystick: quello che l'utente ha scelto (tasto, croce, asse) e, in più, i comandi predefiniti che non lo contraddicono:
+ * se ha scelto la croce restano anche lo stick sinistro, e viceversa, così pad "digitali" e "analogici" rispondono entrambi.
+ */
+function mameDirSeq(n: string, b: Binding | undefined, dir: 'up' | 'down' | 'left' | 'right'): string {
+  const D = dir.toUpperCase()
+  const axisName = dir === 'up' || dir === 'down' ? 'YAXIS' : 'XAXIS'
+  const extra: string[] = []
+  if (!b?.axis) extra.push(`JOYCODE_${n}_${axisName}_${D}_SWITCH`)
+  if (!b?.hat) extra.push(`JOYCODE_${n}_HAT1${D}`)
+  const mine = mameSeq(n, b, [])
+  return [mine, ...extra].filter(Boolean).join(' OR ')
 }
 
 /**
@@ -233,10 +248,10 @@ export function buildMameCtrlr(scheme: InputScheme, layout: ArcadeLayout, custom
     const order = scheme === 'laptop' && layout === 'capcom' ? [3, 4, 5, 0, 1, 2] : [0, 1, 2, 3, 4, 5]
     const bs: ActionId[] = ['b1', 'b2', 'b3', 'b4', 'b5', 'b6']
     ;([['1', ctl.p1], ['2', ctl.p2]] as const).forEach(([n, pc]) => {
-      body += port(`P${n}_JOYSTICK_UP`, mameSeq(n, pc.up, [`JOYCODE_${n}_YAXIS_UP_SWITCH`, `JOYCODE_${n}_DPADUP`]))
-      body += port(`P${n}_JOYSTICK_DOWN`, mameSeq(n, pc.down, [`JOYCODE_${n}_YAXIS_DOWN_SWITCH`, `JOYCODE_${n}_DPADDOWN`]))
-      body += port(`P${n}_JOYSTICK_LEFT`, mameSeq(n, pc.left, [`JOYCODE_${n}_XAXIS_LEFT_SWITCH`, `JOYCODE_${n}_DPADLEFT`]))
-      body += port(`P${n}_JOYSTICK_RIGHT`, mameSeq(n, pc.right, [`JOYCODE_${n}_XAXIS_RIGHT_SWITCH`, `JOYCODE_${n}_DPADRIGHT`]))
+      body += port(`P${n}_JOYSTICK_UP`, mameDirSeq(n, pc.up, 'up'))
+      body += port(`P${n}_JOYSTICK_DOWN`, mameDirSeq(n, pc.down, 'down'))
+      body += port(`P${n}_JOYSTICK_LEFT`, mameDirSeq(n, pc.left, 'left'))
+      body += port(`P${n}_JOYSTICK_RIGHT`, mameDirSeq(n, pc.right, 'right'))
       order.forEach((idx, b) => (body += port(`P${n}_BUTTON${b + 1}`, mameSeq(n, pc[bs[idx]], [`JOYCODE_${n}_BUTTON${b + 1}`]))))
       // L2, R2, L3, R3 → pulsanti 7-10 (solo se assegnati)
       ;(['l2', 'r2', 'l3', 'r3'] as const).forEach((id, j) => {

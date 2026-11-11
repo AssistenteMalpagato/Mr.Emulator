@@ -27,9 +27,12 @@ const tail = (file: string, n: number): string => {
 }
 
 /** Per ogni BIOS richiesto: quale file è stato trovato (null = manca) */
-export function biosStatus(s: Settings, rules: BiosRule[] = BIOS_RULES): Array<{ rule: BiosRule; found: string | null; verified: 'ok' | 'unknown' | 'unchecked' | null }> {
-  const dirs = [s.biosDir, join(s.biosDir || '', 'dc'), join(s.biosDir || '', 'fbneo')]
+export function biosStatus(s: Settings, rules: BiosRule[] = BIOS_RULES): Array<{ rule: BiosRule; found: string | null; verified: 'ok' | 'unknown' | 'unchecked' | null; misplaced?: string }> {
+  const all = [s.biosDir, join(s.biosDir || '', 'dc'), join(s.biosDir || '', 'fbneo')]
   return rules.map((rule) => {
+    // Flycast (Dreamcast, Naomi, Atomiswave) legge i BIOS solo da <bios>\dc: un file messo altrove non serve
+    const strict = rule.where === 'bios\\dc'
+    const dirs = strict ? [join(s.biosDir || '', 'dc')] : all
     let found: string | null = null
     let path = ''
     for (const f of rule.anyOf) {
@@ -40,7 +43,10 @@ export function biosStatus(s: Settings, rules: BiosRule[] = BIOS_RULES): Array<{
         break
       }
     }
-    if (!found) return { rule, found, verified: null }
+    if (!found) {
+      const elsewhere = strict ? all.filter((x) => x && !dirs.includes(x)).flatMap((x) => rule.anyOf.filter((f) => existsSync(join(x, f))).map((f) => join(x, f)))[0] : undefined
+      return { rule, found, verified: null, misplaced: elsewhere }
+    }
     const known = rule.md5?.[found]
     if (!known) return { rule, found, verified: 'unchecked' as const }
     try {
@@ -98,7 +104,7 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
 
   // BIOS per sistema (solo per i sistemi in cui l'utente ha dei giochi)
   for (const st of biosStatus(s)) {
-    if (c.gameCount(st.rule.systemId) > 0 && !st.found) add('bad', mt('BIOS mancante per {name}', { name: st.rule.name }), '', mt('Copia {file} in {where}.', { file: st.rule.anyOf[0], where: st.rule.where }))
+    if (c.gameCount(st.rule.systemId) > 0 && !st.found) add('bad', mt('BIOS mancante per {name}', { name: st.rule.name }), st.misplaced ?? '', st.misplaced ? mt('Il file è nel posto sbagliato: spostalo in {where} (Flycast lo cerca solo lì).', { where: st.rule.where }) : mt('Copia {file} in {where}.', { file: st.rule.anyOf[0], where: st.rule.where }))
   }
 
   // sistemi: cartella e numero di giochi
@@ -107,6 +113,13 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
     if (dir && isDir(dir)) {
       const n = c.gameCount(sys.id)
       add(n > 0 ? 'ok' : 'warn', mt('{name}: {n} giochi', { name: sys.name, n: n.toLocaleString(numLocale()) }), dir, n > 0 ? '' : mt('Cartella vuota o senza file con le estensioni giuste.'))
+      // RAR e simili: nessun emulatore li legge, e il programma li ignorava in silenzio
+      try {
+        const bad = readdirSync(dir).filter((f) => /\.(rar|zipx|cab)$/i.test(f))
+        if (bad.length) add('warn', mt('{name}: {n} file RAR non utilizzabili', { name: sys.name, n: bad.length }), bad.slice(0, 3).join(', '), mt('I file RAR non si possono usare: estraili e, se serve, ricomprimili in ZIP o 7z.'))
+      } catch {
+        // cartella non leggibile
+      }
     }
   }
   // bordi grafici: quale file userà ogni sistema (utile quando "non cambia")
@@ -160,6 +173,20 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
     .filter((l) => /\[Video\]|aspect|viewport|shader|slang|preset/i.test(l))
     .slice(-14)
     .join('\n')
+  // comandi del giocatore 1 scritti per MAME all'ultima partita (nomi dei pulsanti e delle direzioni)
+  let mameCtrl = ''
+  try {
+    const dir = join(c.userData, 'mame', 'ctrlr')
+    const files = readdirSync(dir).filter((f) => f.endsWith('.cfg')).map((f) => ({ f, t: statSync(join(dir, f)).mtimeMs }))
+    files.sort((a, b) => b.t - a.t)
+    if (files[0]) {
+      const xml = readFileSync(join(dir, files[0].f), 'utf-8')
+      const rows = [...xml.matchAll(/<port type="(P1_[A-Z0-9_]+|START1|COIN1|UI_CANCEL|UI_CONFIGURE)">\s*<newseq type="standard">([^<]*)</g)].map((m) => `${m[1]} = ${m[2]}`)
+      mameCtrl = `(${files[0].f})\n${rows.join('\n')}`
+    }
+  } catch {
+    // MAME non ancora avviato
+  }
   const combo = pick(join(c.userData, 'shader-combo.slangp'), /^(shaders|shader\d+|scale\w*\d+)\s*=/i)
   if (mainLog) add('warn', mt('Il programma ha registrato errori imprevisti'), mt('vedi il testo copiabile'), mt('Mandami il testo della diagnostica.'))
 
@@ -174,6 +201,7 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
     raLines ? `\n--- ultima partita con RetroArch (salvataggi e errori) ---\n${raLines}` : '',
     raCfg ? `\n--- immagine richiesta a RetroArch (ultima partita) ---\n${raCfg}${raVideo ? `\n${raVideo}` : ''}` : '',
     combo ? `\n--- preset di shader unito (nitidezza + CRT) ---\n${combo}` : '',
+    mameCtrl ? `\n--- comandi inviati a MAME (giocatore 1) ---\n${mameCtrl}` : '',
     mameIni ? `\n--- immagine richiesta a MAME (ultima partita) ---\n${mameIni}` : ''
   ].join('\n')
   return { checks, text, problems: checks.filter((k) => k.level === 'bad').length, warnings: checks.filter((k) => k.level === 'warn').length }

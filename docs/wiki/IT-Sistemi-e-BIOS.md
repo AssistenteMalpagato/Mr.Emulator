@@ -11,7 +11,7 @@ Mr. Emulator non emula nulla da solo. Ogni sistema è eseguito da un **core libr
 | **Arcade** | Arcade (FinalBurn Neo) | core `fbneo` | `arcade` | `.zip` `.7z` |
 | | Arcade (MAME autonomo) | MAME | `mame` | `.zip` `.7z` (+ CHD) |
 | | Neo Geo | core `fbneo` | `neogeo` | `.zip` `.7z` |
-| | Sega Naomi · Atomiswave | core `flycast` | `naomi` · `atomiswave` | `.zip` `.7z` `.chd` |
+| | Sega Naomi · Atomiswave | core `flycast` | `naomi` · `atomiswave` | `.zip` `.7z` `.chd` · file grezzi `.dat` `.bin` `.lst` |
 | **Sega** | Master System | `genesis_plus_gx` | `mastersystem` | `.sms` `.zip` |
 | | Mega Drive | `genesis_plus_gx` | `megadrive` | `.md` `.gen` `.smd` `.bin` `.zip` |
 | | Game Gear · SG-1000 | `fbneo` | `gamegear` · `sg1000` | `.zip` `.7z` |
@@ -41,9 +41,18 @@ Solo pochi sistemi richiedono un BIOS. La guida al primo avvio mostra l'elenco e
 | Neo Geo | `neogeo.zip` | `bios\fbneo` (o accanto ai giochi) |
 | PlayStation | `scph5501.bin` (o `scph5500` / `scph5502`…) | `bios` |
 | Dreamcast | `dc_boot.bin` + `dc_flash.bin` | `bios\dc` |
-| Naomi / Atomiswave | `naomi.zip` / `awbios.zip` | `bios\dc` o accanto ai giochi |
+| Naomi / Atomiswave | `naomi.zip` / `awbios.zip` | `bios\dc` **soltanto** (Flycast non cerca altrove) |
 | Famicom Disk System | `disksys.rom` | `bios` |
 | 3DO | `panafz10.bin` | `bios` |
+
+## Naomi e Atomiswave: quali file funzionano
+
+Flycast esegue questi sistemi da **set di ROM con i nomi di MAME** (`.zip` o `.7z` con il nome del set, per esempio `deathcox`, che contengono molti file tipo `epr-….ic22`, `mpr-….ic1`). Cose che **non** funzionano:
+
+- **Archivi `.rar`** — nessun emulatore legge i RAR: vanno estratti (la Diagnostica avvisa se ne trova).
+- **Un archivio con dentro un solo `.dat` o `.bin`** — è un'*immagine grezza*, non un set MAME: Flycast scarta l'archivio e il programma lo dice quando lo avvii. Estrai il `.dat`/`.bin` e mettilo **direttamente nella cartella del sistema** (compare in elenco e Flycast lo carica, con l'avviso *«Please upgrade to MAME romsets or expect issues»*), oppure cerca il set MAME.
+- **BIOS nella cartella sbagliata** — `naomi.zip` / `awbios.zip` devono stare in `bios\dc`; la Diagnostica dice se sono altrove.
+- **Giochi su GD-ROM** — usano `.chd` o `.gdi`, non ZIP/7z.
 
 ## Cartelle
 

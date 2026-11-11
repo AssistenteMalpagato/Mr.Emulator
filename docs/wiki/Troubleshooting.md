@@ -14,6 +14,7 @@
 | **RetroArch not found** | Path not set | Settings → General → *Search this PC* / Browse to `retroarch.exe`. |
 | **Missing core** | Core not downloaded | First-run guide or Diagnostics → install the core, or RetroArch → Load Core → Download a Core. |
 | **Missing BIOS** | File not in `bios` | See the table in [Systems & BIOS](Systems). Diagnostics says which file and where. |
+| **Naomi / Atomiswave game does not start** | A `.rar`, an archive with a single `.dat`/`.bin`, or the BIOS outside `bios\dc` | See *Naomi and Atomiswave: which files work* in [Systems & BIOS](Systems). The start-up message and Diagnostics tell you which case it is. |
 | **MAME game will not start** | ROM set and MAME version differ, or a ZIP is incomplete | Use the MAME version of your set. Use **ROM check**; the failure notice names the missing/bad files. Click the notice to copy details. |
 | Game always looks **full height** whatever mode I choose | Older versions: RetroArch remembered the last aspect; or a graphic border covers the sides | Update (fixed in 0.2.6/0.2.4). In *Full screen (stretched)* borders are switched off automatically. |
 | **Border not found** | Names do not match | Settings → Screen: see "Borders matched automatically: N of M"; pick the border by hand for the others. Remember to turn the option on and press **Save**. |

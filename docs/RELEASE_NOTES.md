@@ -1,3 +1,24 @@
+## Mr. Emulator 0.2.17
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🕹️ **Sega Naomi / Atomiswave**:
+  - raw dumps (`.dat`, `.bin`, `.lst`) are now listed (Flycast can load them directly, with a warning);
+  - a ZIP/7z that only contains a raw `.dat`/`.bin` is not a MAME set: starting it now says so and explains what to do (instead of failing silently);
+  - the BIOS (`naomi.zip`, `awbios.zip`, `dc_boot.bin`) is only accepted in `bios\dc` — the only place Flycast looks. The old check also accepted other folders, so a misplaced BIOS passed the check and the game did not start; Diagnostics now says "the file is in the wrong place";
+  - the Naomi/Atomiswave BIOS files are no longer shown as games.
+- 🩺 **Diagnostics** lists `.rar` / `.zipx` / `.cab` files found in a system folder (no emulator can read them).
+- 📖 Wiki: the wrong "or next to the games" BIOS note was removed; new section *Naomi and Atomiswave: which files work*.
+
+## Mr. Emulator 0.2.16
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🎮 **MAME gamepads**: the D-pad (hat) did not respond in MAME. The program wrote button names MAME does not know (`HSWITCH`, `DPAD`), and MAME drops them silently; MAME's real names are `HAT1UP / DOWN / LEFT / RIGHT`. Fixed for both the default and the manual (*Custom*) mapping. D-pad **and** left stick now work together: if you assign one, the other stays available.
+- 🩺 Diagnostics now shows the player-1 controls written for MAME at the last game, to track input problems.
+
 ## Mr. Emulator 0.2.15
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
