@@ -13,7 +13,7 @@ export function prettyName(fileName: string): string {
 }
 
 /** Set di sistema (BIOS) di FBNeo: non sono giochi e non vanno mostrati nella lista */
-export const BIOS_SETS = new Set(['neogeo', 'pgm', 'decocass', 'cchip', 'ym2608', 'midssio', 'nmk004', 'isgsm', 'konamigx', 'skns'])
+export const BIOS_SETS = new Set(['neogeo', 'pgm', 'decocass', 'cchip', 'ym2608', 'midssio', 'nmk004', 'isgsm', 'konamigx', 'skns', 'naomi', 'naomi2', 'awbios', 'hod2bios', 'f355bios', 'airlbios'])
 
 const tick = (): Promise<void> => new Promise((r) => setImmediate(r))
 

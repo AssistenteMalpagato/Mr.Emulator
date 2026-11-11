@@ -14,6 +14,7 @@
 | **RetroArch non trovato** | Percorso non indicato | Impostazioni → Generale → *Cerca sul PC* / Sfoglia fino a `retroarch.exe`. |
 | **Core mancante** | Core non scaricato | Guida al primo avvio o Diagnostica → installa il core, oppure RetroArch → Carica core → Scarica un core. |
 | **BIOS mancante** | File non in `bios` | Vedi la tabella in [Sistemi e BIOS](IT-Sistemi-e-BIOS). La Diagnostica dice quale file e dove. |
+| **Un gioco Naomi / Atomiswave non parte** | Un `.rar`, un archivio con un solo `.dat`/`.bin`, o il BIOS fuori da `bios\dc` | Vedi *Naomi e Atomiswave: quali file funzionano* in [Sistemi e BIOS](IT-Sistemi-e-BIOS). Il messaggio all'avvio e la Diagnostica dicono quale caso è. |
 | **Un gioco MAME non parte** | Set di ROM e versione di MAME diversi, o ZIP incompleto | Usa la versione di MAME del tuo set. Usa il **Controllo ROM**; l'avviso di errore indica i file mancanti o errati. Clicca l'avviso per copiare i dettagli. |
 | Il gioco è sempre **a tutta altezza** qualunque modalità scelga | Versioni vecchie: RetroArch ricordava l'ultima proporzione; oppure un bordo grafico copre i lati | Aggiorna (corretto nelle 0.2.6/0.2.4). In *Tutto schermo (stirato)* i bordi si spengono da soli. |
 | **Bordo non trovato** | I nomi non coincidono | Impostazioni → Schermo: guarda «Bordi abbinati da soli: N su M»; scegli il bordo a mano per gli altri. Ricorda di attivare l'opzione e premere **Salva**. |
