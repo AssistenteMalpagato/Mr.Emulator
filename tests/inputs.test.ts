@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { buildInputConfig, buildMameCtrlr, buildInputMap, presetControls, prettyBinding } from '../src/main/inputs'
+import { buildInputConfig, buildMameCtrlr, controlsFor, buildInputMap, presetControls, prettyBinding } from '../src/main/inputs'
 import { codeToRetro, retroToCode } from '../src/shared/keys'
 import type { CustomControls } from '../src/shared/types'
 
@@ -52,7 +52,7 @@ test('comandi manuali: tasti, pulsanti e assi arrivano a RetroArch', () => {
 test('comandi manuali: file di MAME con tasti, pulsanti e assi', () => {
   const { name, xml } = buildMameCtrlr('custom', 'standard', custom())
   assert.equal(name, 'mrcustom')
-  assert.match(xml, /P1_JOYSTICK_UP[\s\S]*?JOYCODE_1_YAXIS_UP_SWITCH<\/newseq>/)
+  assert.match(xml, /P1_JOYSTICK_UP[\s\S]*?JOYCODE_1_YAXIS_UP_SWITCH OR JOYCODE_1_HAT1UP<\/newseq>/)
   assert.match(xml, /P1_BUTTON1[\s\S]*?JOYCODE_1_BUTTON5<\/newseq>/)
   assert.match(xml, /P1_BUTTON2[\s\S]*?KEYCODE_Q OR JOYCODE_1_BUTTON2<\/newseq>/)
   assert.match(xml, /START1[\s\S]*?JOYCODE_1_BUTTON10<\/newseq>/)
@@ -145,7 +145,9 @@ test('pad con più di 6 tasti (clone PS3): L2, R2, L3, R3, croce "hat" e assi ar
   const { xml } = buildMameCtrlr('custom', 'standard', c)
   assert.match(xml, /P1_BUTTON7[\s\S]*?JOYCODE_1_BUTTON7<\/newseq>/)
   assert.match(xml, /P1_BUTTON9[\s\S]*?JOYCODE_1_BUTTON11<\/newseq>/)
-  assert.match(xml, /P1_JOYSTICK_UP[\s\S]*?JOYCODE_1_HSWITCH_UP<\/newseq>/)
+  // croce scelta a mano: HAT1UP (nome vero di MAME) e in più lo stick sinistro, che non è stato assegnato
+  assert.match(xml, /P1_JOYSTICK_UP[\s\S]*?JOYCODE_1_HAT1UP OR JOYCODE_1_YAXIS_UP_SWITCH<\/newseq>/)
+  assert.ok(!/HSWITCH|DPAD/.test(xml))
   assert.ok(!/P2_BUTTON7/.test(xml)) // non assegnati: nessuna riga vuota
   assert.equal(prettyBinding({ hat: 'left' }), 'Croce ←')
 })
@@ -160,4 +162,24 @@ test('croce "hat" dei pad non Xbox: valori dell\'asse 9 riconosciuti', async () 
   assert.equal(hatFromAxes(mk(0.71429)), 'left')
   assert.equal(hatFromAxes(mk(0.3)), null)
   assert.equal(hatFromAxes([0, 0, 0, 0]), null) // pad senza hat
+})
+
+test('MAME: con i comandi predefiniti rispondono sia la croce (HAT1) sia lo stick, per entrambi i giocatori', () => {
+  for (const scheme of ['laptop', 'custom'] as const) {
+    const { xml } = buildMameCtrlr(scheme, 'standard', null)
+    for (const n of ['1', '2']) {
+      assert.match(xml, new RegExp(`P${n}_JOYSTICK_LEFT[\\s\\S]*?JOYCODE_${n}_XAXIS_LEFT_SWITCH OR JOYCODE_${n}_HAT1LEFT<\\/newseq>`))
+      assert.match(xml, new RegExp(`P${n}_JOYSTICK_DOWN[\\s\\S]*?JOYCODE_${n}_YAXIS_DOWN_SWITCH OR JOYCODE_${n}_HAT1DOWN<\\/newseq>`))
+    }
+    // nomi che MAME non conosce: non si devono più scrivere
+    assert.ok(!/HSWITCH|DPAD/.test(xml))
+  }
+})
+
+test('MAME: se l\'utente sceglie lo stick, restano anche la croce; un tasto da tastiera non toglie i comandi del pad', () => {
+  const base = controlsFor('laptop', null)
+  const c = { ...base, p1: { ...base.p1, up: { axis: '-1' }, left: { key: 'a' } } } as unknown as Parameters<typeof buildMameCtrlr>[2]
+  const { xml } = buildMameCtrlr('custom', 'standard', c)
+  assert.match(xml, /P1_JOYSTICK_UP[\s\S]*?JOYCODE_1_YAXIS_UP_SWITCH OR JOYCODE_1_HAT1UP<\/newseq>/)
+  assert.match(xml, /P1_JOYSTICK_LEFT[\s\S]*?KEYCODE_A OR JOYCODE_1_XAXIS_LEFT_SWITCH OR JOYCODE_1_HAT1LEFT<\/newseq>/)
 })

@@ -160,6 +160,20 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
     .filter((l) => /\[Video\]|aspect|viewport|shader|slang|preset/i.test(l))
     .slice(-14)
     .join('\n')
+  // comandi del giocatore 1 scritti per MAME all'ultima partita (nomi dei pulsanti e delle direzioni)
+  let mameCtrl = ''
+  try {
+    const dir = join(c.userData, 'mame', 'ctrlr')
+    const files = readdirSync(dir).filter((f) => f.endsWith('.cfg')).map((f) => ({ f, t: statSync(join(dir, f)).mtimeMs }))
+    files.sort((a, b) => b.t - a.t)
+    if (files[0]) {
+      const xml = readFileSync(join(dir, files[0].f), 'utf-8')
+      const rows = [...xml.matchAll(/<port type="(P1_[A-Z0-9_]+|START1|COIN1|UI_CANCEL|UI_CONFIGURE)">\s*<newseq type="standard">([^<]*)</g)].map((m) => `${m[1]} = ${m[2]}`)
+      mameCtrl = `(${files[0].f})\n${rows.join('\n')}`
+    }
+  } catch {
+    // MAME non ancora avviato
+  }
   const combo = pick(join(c.userData, 'shader-combo.slangp'), /^(shaders|shader\d+|scale\w*\d+)\s*=/i)
   if (mainLog) add('warn', mt('Il programma ha registrato errori imprevisti'), mt('vedi il testo copiabile'), mt('Mandami il testo della diagnostica.'))
 
@@ -174,6 +188,7 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
     raLines ? `\n--- ultima partita con RetroArch (salvataggi e errori) ---\n${raLines}` : '',
     raCfg ? `\n--- immagine richiesta a RetroArch (ultima partita) ---\n${raCfg}${raVideo ? `\n${raVideo}` : ''}` : '',
     combo ? `\n--- preset di shader unito (nitidezza + CRT) ---\n${combo}` : '',
+    mameCtrl ? `\n--- comandi inviati a MAME (giocatore 1) ---\n${mameCtrl}` : '',
     mameIni ? `\n--- immagine richiesta a MAME (ultima partita) ---\n${mameIni}` : ''
   ].join('\n')
   return { checks, text, problems: checks.filter((k) => k.level === 'bad').length, warnings: checks.filter((k) => k.level === 'warn').length }
