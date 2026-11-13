@@ -6,7 +6,7 @@ import { mkdirSync, writeFileSync } from 'fs'
 import type { Game, LaunchResult, Settings, SystemDef } from '@shared/types'
 import { platform } from './platform'
 import { systemDir } from './paths'
-import { archiveNames, looksLikeRawDump } from './naomi'
+import { archiveNames, looksLikeDiscImage, looksLikeRawDump } from './naomi'
 import { mt } from './mt'
 
 /** Avvia RetroArch con il core giusto. Chiama onExit quando il gioco si chiude. */
@@ -61,6 +61,9 @@ export function launchGame(
   // Naomi/Atomiswave: uno ZIP o 7z con dentro un solo .dat/.bin non è un set MAME e Flycast lo scarta
   if ((system.id === 'naomi' || system.id === 'atomiswave') && /\.(zip|7z)$/i.test(game.path)) {
     const names = archiveNames(game.path)
+    if (names && looksLikeDiscImage(names)) {
+      return { ok: false, error: mt('Questo archivio contiene un disco intero (.cue/.gdi), non un set MAME: Flycast non riesce ad avviare questi dump di GD-ROM Naomi. Servono i file nel formato dei set MAME.') }
+    }
     if (names && looksLikeRawDump(names)) {
       return { ok: false, error: mt('Questo archivio contiene solo un file {ext}, non un set MAME. Per {name} serve uno ZIP con i file del set (nomi tipo epr-…, mpr-…), oppure il file {ext} estratto e messo direttamente nella cartella del sistema.', { ext: (/\.(\w+)$/.exec(names[0])?.[0] ?? '.dat').toLowerCase(), name: system.name }) }
     }

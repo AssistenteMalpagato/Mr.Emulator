@@ -19,3 +19,6 @@ export function mameFolderName(version: string): string {
   if (dotted) return `mame${dotted[1]}${dotted[2].padStart(3, '0')}`
   return 'mame'
 }
+
+/** Percorso con barre normali (/), come lo vogliono i file di configurazione di RetroArch su ogni sistema */
+export const fwd = (p: string): string => p.replace(/\\/g, '/')

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, session, shell } from 'electron'
 import { pathToFileURL } from 'url'
 import { createReadStream, statSync } from 'fs'
 import { Readable } from 'stream'
@@ -9,7 +9,7 @@ import { basename, isAbsolute, join } from 'path'
 import type { ArtKind, Feedback, Game, GameEnded, LaunchOptions, SaveInfo, OptimizationReport, PickKind, Settings, SystemDef, SystemInfo, VerifyState } from '@shared/types'
 import { mkdirSync } from 'fs'
 import { SYSTEMS } from './systems'
-import { loadSettings, saveSettings } from './settings'
+import { loadSettings, sanitizeSettings, saveSettings } from './settings'
 import { demoGames } from './scanner'
 import { createLibrary } from './library'
 import { launchGame } from './launcher'
@@ -23,12 +23,13 @@ import { setHighPerformanceGpu } from './gpuPref'
 import { buildInputConfig, buildInputMap, buildMameCtrlr, presetControls } from './inputs'
 import { ART_SCHEME, artRoot, setArtRoot, arcadeTitles, clearArtMisses, clearLocalArt, coverCount, coverMisses, readCoverRuns, saveCoverRun, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
 import { MediaSource } from './media'
+import { isMachineName } from './machineName'
 import { cacheStats, cleanupList, clearImages, clearLocalCopies, mergeDir, moveCache, optimizeCache, pruneCache } from './cache'
 import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
 import { findOverlays } from './overlays'
-import { checkForUpdate, type UpdateInfo } from './updates'
+import { checkForUpdateStatus, type UpdateInfo } from './updates'
 import { loadStats, recordPlay } from './stats'
 import { consoleImagesDir, ensureConsoleImagesDir, findConsoleImage, listConsoleImages, readConsoleImage } from './consoleImages'
 import { commonBases, findInstalls, OFFICIAL, type ToolKind } from './detect'
@@ -38,6 +39,7 @@ import { coreList, coresDirOf, installCore } from './cores'
 import { biosStatus, buildDiagnostics } from './diagnostics'
 import { writeFileAtomic } from './atomic'
 import { softTitles } from './softlist'
+import { createSoftVideoFinder, softVideoListsOf } from './softVideo'
 import { datTitles } from './datfiles'
 import { launchMame } from './mameLauncher'
 import { mameFolderName, systemDir } from './paths'
@@ -135,6 +137,12 @@ function createWindow(): void {
       app.quit()
     }
   })
+  // il launcher non apre finestre né naviga altrove: i link esterni passano solo da shell.openExternal, con controllo
+  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  const appUrl = process.env['ELECTRON_RENDERER_URL'] ?? pathToFileURL(join(__dirname, '../renderer/index.html')).href
+  win.webContents.on('will-navigate', (e, url) => {
+    if (!url.startsWith(appUrl)) e.preventDefault()
+  })
   // se la finestra si blocca o la sua parte grafica si chiude da sola, si registra e si ricarica invece di restare nera
   let reloads = 0
   win.webContents.on('render-process-gone', (_e, d) => {
@@ -145,6 +153,12 @@ function createWindow(): void {
   win.webContents.on('did-fail-load', (_e, code, desc) => logCrash('did-fail-load', `${code} ${desc}`))
   if (process.env['ELECTRON_RENDERER_URL']) win.loadURL(process.env['ELECTRON_RENDERER_URL'])
   else win.loadFile(join(__dirname, '../renderer/index.html'))
+  // Chromium passa i pulsanti del pad solo alla pagina che ha il focus: all'avvio (soprattutto con l'avvio automatico) la finestra puo restare senza
+  win.webContents.once('did-finish-load', () => {
+    if (!win || win.isDestroyed()) return
+    win.focus()
+    win.webContents.focus()
+  })
 }
 
 /** Elenco delle macchine del MAME dell'utente: si legge una volta e si riusa */
@@ -314,12 +328,28 @@ app.whenReady().then(async () => {
     const stem = (game.machine ?? game.fileName.replace(/\.[^.]+$/, '')).toLowerCase()
     let parent = ''
     if (system.engine === 'mame') parent = (await getMame())?.machines.get(stem)?.cloneof ?? ''
-    return [stem, parent].filter(Boolean)
+    // il nome diventa parte di un percorso: niente separatori (un renderer compromesso non deve uscire dalla cartella dei media)
+    return [stem, parent].filter((n) => n && !/[\\/]/.test(n))
+  }
+  // filmati delle console (cartella videosnaps_SL): uno per Software List, trovato dal nome del file o dal titolo
+  let softFinder: { root: string; mame: string; finder: ReturnType<typeof createSoftVideoFinder> } | null = null
+  const softVideo = async (media: MediaSource, game: Game): Promise<string | null> => {
+    const system = SYSTEMS.find((x) => x.id === game.systemId)
+    const lists = system ? softVideoListsOf(system) : []
+    if (!lists.length) return null
+    const root = await media.softVideoDir()
+    if (!root) return null
+    const mame = loadSettings().mamePath
+    if (!softFinder || softFinder.root !== root || softFinder.mame !== mame) {
+      const cache = join(app.getPath('userData'), 'artwork', '_dat')
+      softFinder = { root, mame, finder: createSoftVideoFinder(root, (l) => softTitles(mame, l, cache)) }
+    }
+    return softFinder.finder.find(game, lists)
   }
   ipcMain.handle('media:video', async (_e, game: Game) => {
     const media = getMedia()
     if (!media || game.demo) return null
-    const file = await media.findVideo(await mediaNames(game))
+    const file = (await media.findVideo(await mediaNames(game))) ?? (await softVideo(media, game))
     return file ? mediaUrl(file) : null
   })
   ipcMain.handle('media:tracks', async (_e, game: Game) => {
@@ -402,6 +432,7 @@ app.whenReady().then(async () => {
 
   // un solo gioco: pochi secondi
   ipcMain.handle('verify:machine', async (_e, name: string) => {
+    if (!isMachineName(name)) return { ok: false, issues: [], error: mt('Nome del gioco non valido per MAME: {name}', { name: String(name) }) }
     const s = loadSettings()
     if (!s.mamePath || !existsSync(s.mamePath)) return { ok: false, issues: [], error: mt('MAME non trovato.') }
     const r = await runVerify(s.mamePath, ['-verifyroms', name, '-inipath', verifyIni(s)]).done
@@ -426,7 +457,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('settings:get', () => loadSettings())
   ipcMain.handle('settings:save', (_e, s: Settings) => {
     const before = loadSettings()
-    const saved = saveSettings(s)
+    const saved = saveSettings(sanitizeSettings(s, before))
     applyCacheDir(saved)
     void applyGpuPreference(saved)
     // cartella ROM cambiata: si rilegge com'è fatta (nomi delle cartelle dei sistemi); non si crea nulla
@@ -740,7 +771,10 @@ app.whenReady().then(async () => {
     } catch {
       // copia illeggibile: si ricontrolla
     }
-    update = await checkForUpdate(app.getVersion())
+    const res = await checkForUpdateStatus(app.getVersion())
+    update = res.info
+    // un errore di rete passeggero non si ricorda: si riprova al prossimo avvio
+    if (!res.ok) return
     try {
       writeFileAtomic(f, JSON.stringify({ at: Date.now(), info: update }))
     } catch {
@@ -878,6 +912,8 @@ app.whenReady().then(async () => {
     saveSettings({ ...s, tuning: { ...s.tuning, [systemId]: Math.min(1, Math.max(-2, next)) } })
   })
 
+  // permessi del contenuto (camera, microfono, posizione, notifiche...): il launcher non ne usa nessuno, tranne copiare negli appunti
+  session.defaultSession.setPermissionRequestHandler((_wc, permission, done) => done(permission === 'clipboard-sanitized-write'))
   createWindow()
   applyCabinet(loadSettings())
   // prima volta con la cartella unica dei salvataggi: si portano lì quelli di MAME già esistenti (RetroArch si importa dalle impostazioni)

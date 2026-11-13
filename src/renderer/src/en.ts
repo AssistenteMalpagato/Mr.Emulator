@@ -515,6 +515,8 @@ export const EN: Record<string, string> = {
   "Cartella DAT (FinalBurn Neo, Kawaks, MAME…)": "DAT folder (FinalBurn Neo, Kawaks, MAME…)",
   "Cartella ROM": "ROM folder",
   "Cartella ROM di MAME (facoltativa)": "MAME ROM folder (optional)",
+  "Cartella dei trucchi (facoltativa)": "Cheats folder (optional)",
+  "Vuota = la cartella cheats accanto a quella delle ROM": "Empty = the cheats folder next to the ROM folder",
   "Cartella con snap, titles, flyers… (file col nome breve del gioco). Ha la precedenza sul download": "Folder with snaps, titles, flyers… (files named with the short game name). It takes priority over downloads",
   "Cartella dei core (facoltativa)": "Cores folder (optional)",
   "Cartella dei dischi CHD per MAME (facoltativa)": "CHD disks folder for MAME (optional)",
@@ -609,4 +611,6 @@ export const EN: Record<string, string> = {
   "✔ ROM a posto: questo gioco è completo.": "✔ ROM is fine: this game is complete.",
   "✔ Tutto impostato dentro {dir}": "✔ Everything set up inside {dir}",
   "✔ Tutto impostato dentro {dir} (roms, bios e la cartella di MAME)": "✔ Everything set up inside {dir} (roms, bios and the MAME folder)",
+  "Riprendi la partita": "Resume the game",
+  "Cerca un titolo": "Search for a title",
 }

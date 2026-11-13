@@ -397,7 +397,7 @@ export default function SearchPanel(p: Props): React.JSX.Element {
       .join(' ')
 
   return (
-    <div className="modal sp">
+    <div className="modal sp" role="dialog" aria-modal="true" aria-label={t('Cerca un titolo')}>
       <FadeBackdrop url={art?.back ?? null} />
       <div className="sp-box">
         <div className="sp-left">
@@ -410,7 +410,7 @@ export default function SearchPanel(p: Props): React.JSX.Element {
             <button className="sp-x" onClick={toggleLayout} title={t('Cambia disposizione tastiera (X del pad · F2)')}>
               {layout === 'qwerty' ? 'ABC' : 'QWE'}
             </button>
-            <button className="sp-x" onClick={p.onClose} title={t('Chiudi')}>
+            <button className="sp-x" onClick={p.onClose} title={t('Chiudi')} aria-label={t('Chiudi')}>
               ✕
             </button>
           </div>

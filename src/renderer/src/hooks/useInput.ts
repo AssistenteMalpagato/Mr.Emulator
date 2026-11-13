@@ -219,7 +219,16 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
     }
     raf = requestAnimationFrame(tick)
 
+    // un pad che si collega o una finestra che torna a fuoco: ripartire da zero, senza pulsanti "tenuti" rimasti dallo stato di prima
+    const reset = (): void => held.clear()
+    window.addEventListener('gamepadconnected', reset)
+    window.addEventListener('gamepaddisconnected', reset)
+    window.addEventListener('focus', reset)
+
     return () => {
+      window.removeEventListener('gamepadconnected', reset)
+      window.removeEventListener('gamepaddisconnected', reset)
+      window.removeEventListener('focus', reset)
       window.removeEventListener('keydown', onKey)
       cancelAnimationFrame(raf)
     }

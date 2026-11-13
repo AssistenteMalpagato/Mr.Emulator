@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'fs'
 import { dirname, isAbsolute, resolve } from 'path'
+import { fwd } from './paths'
 
 /** Proprietà che in un preset .slangp appartengono a un singolo passaggio (hanno il numero in fondo: scale_type0, filter_linear1…) */
 const PASS_KEYS = new Set([
@@ -13,7 +14,6 @@ export interface Preset {
   globals: Record<string, string>
 }
 
-const fwd = (p: string): string => p.replace(/\\/g, '/')
 const unquote = (v: string): string => v.trim().replace(/^"(.*)"$/, '$1')
 
 /**

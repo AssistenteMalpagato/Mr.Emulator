@@ -19,10 +19,10 @@ const listeners = new Set<() => void>()
 
 export function setLang(setting: LangSetting): void {
   const next = setting === 'auto' ? detectLang() : setting
+  document.documentElement.lang = next
   if (next === lang) return
   lang = next
   version++
-  document.documentElement.lang = next
   listeners.forEach((l) => l())
 }
 

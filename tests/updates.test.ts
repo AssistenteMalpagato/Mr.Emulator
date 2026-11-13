@@ -25,3 +25,15 @@ test('aggiornamento: solo se la release è più recente e vera', async () => {
   const strano = await checkForUpdate('0.1.4', reply({ tag_name: 'v9.9.9', html_url: 'https://sito-strano.example/scarica' }))
   assert.equal(strano?.url, 'https://github.com/AssistenteMalpagato/Mr.Emulator/releases/latest')
 })
+
+test('controllo aggiornamenti: un errore non è un "nessun aggiornamento"', async () => {
+  const { checkForUpdateStatus } = await import('../src/main/updates')
+  const bad = (async () => ({ ok: false, status: 403 }) as Response) as typeof fetch
+  assert.deepEqual(await checkForUpdateStatus('0.1.4', bad), { ok: false, info: null })
+  const boom = (async () => {
+    throw new Error('rete')
+  }) as typeof fetch
+  assert.deepEqual(await checkForUpdateStatus('0.1.4', boom), { ok: false, info: null })
+  const none = (async () => ({ ok: true, json: async () => ({ tag_name: 'v0.1.4', html_url: 'https://github.com/AssistenteMalpagato/Mr.Emulator/releases/tag/v0.1.4' }) }) as unknown as Response) as typeof fetch
+  assert.deepEqual(await checkForUpdateStatus('0.1.4', none), { ok: true, info: null })
+})

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdirSync, mkdtempSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
-import { looksLikeRawDump } from '../src/main/naomi'
+import { looksLikeDiscImage, looksLikeRawDump } from '../src/main/naomi'
 import { biosStatus } from '../src/main/diagnostics'
 import { SYSTEMS } from '../src/main/systems'
 import { BIOS_SETS } from '../src/main/scanner'
@@ -41,4 +41,23 @@ test('BIOS di Flycast: contano solo in bios\\dc; se stanno altrove la Diagnostic
   // le regole non-Flycast restano flessibili (PlayStation in bios\ o in sottocartelle)
   writeFileSync(join(root, 'scph5501.bin'), 'x')
   assert.equal(biosStatus(s, [{ systemId: 'psx', name: 'PS', anyOf: ['scph5501.bin'], where: 'bios', note: '' }])[0].found, 'scph5501.bin')
+})
+
+test('archivio con dentro un disco (.cue/.gdi) = immagine di disco, non un set MAME', () => {
+  assert.equal(looksLikeDiscImage(['Gioco (Track 1).bin', 'Gioco (Track 2).bin', 'Gioco.cue']), true)
+  assert.equal(looksLikeDiscImage(['disc.gdi', 'track01.bin']), true)
+  assert.equal(looksLikeDiscImage(['epr-23605.ic22', 'mpr-23528.ic1']), false)
+})
+
+test('MAME: i giochi del driver naomi.cpp hanno la famiglia Naomi / Atomiswave', async () => {
+  const { familyOf } = await import('../src/main/mame')
+  const m = { name: 'hotd2', description: 'The House of the Dead 2', year: '1999', manufacturer: 'Sega', cloneof: undefined, driver: 'naomi.cpp', bios: false, device: false, mechanical: false, runnable: true, status: 'good' }
+  assert.equal(familyOf(m as never, new Map()), 'Naomi / Atomiswave')
+})
+
+test('nome macchina MAME: solo lettere, cifre e underscore, mai un\'opzione', async () => {
+  const { isMachineName } = await import('../src/main/machineName')
+  for (const ok of ['hotd2', 'vs2_2k', '1942', 'ggxxsla']) assert.equal(isMachineName(ok), true, ok)
+  for (const bad of ['-autoboot_script', '--help', '../x', 'a b', '', 'a/b', 'a\b', 'x'.repeat(65)]) assert.equal(isMachineName(bad), false, bad)
+  assert.equal(isMachineName(undefined), false)
 })
