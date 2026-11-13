@@ -82,6 +82,8 @@ export const EN_MAIN: Record<string, string> = {
   'cartelle una dentro l\'altra': 'folders inside one another',
   'Manca il BIOS Naomi (naomi.zip). Copialo nella cartella bios\\dc: Flycast lo cerca solo lì.': 'The Naomi BIOS (naomi.zip) is missing. Copy it into the bios\\dc folder: Flycast only looks there.',
   'Manca il BIOS Atomiswave (awbios.zip). Copialo nella cartella bios\\dc: Flycast lo cerca solo lì.': 'The Atomiswave BIOS (awbios.zip) is missing. Copy it into the bios\\dc folder: Flycast only looks there.',
+  'Nome del gioco non valido per MAME: {name}': 'Invalid game name for MAME: {name}',
+  'Questo archivio contiene un disco intero (.cue/.gdi), non un set MAME: Flycast non riesce ad avviare questi dump di GD-ROM Naomi. Servono i file nel formato dei set MAME.': 'This archive contains a whole disc (.cue/.gdi), not a MAME set: Flycast cannot launch these Naomi GD-ROM dumps. The files are needed in the MAME set format.',
   'Questo archivio contiene solo un file {ext}, non un set MAME. Per {name} serve uno ZIP con i file del set (nomi tipo epr-…, mpr-…), oppure il file {ext} estratto e messo direttamente nella cartella del sistema.': 'This archive contains only one {ext} file, not a MAME set. {name} needs a ZIP with the set\'s files (names like epr-…, mpr-…), or the {ext} file extracted and put directly in the system folder.',
   'Il file è nel posto sbagliato: spostalo in {where} (Flycast lo cerca solo lì).': 'The file is in the wrong place: move it to {where} (Flycast only looks there).',
   '{name}: {n} file RAR non utilizzabili': '{name}: {n} RAR files cannot be used',

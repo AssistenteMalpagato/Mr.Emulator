@@ -61,6 +61,8 @@ export default function CoverCarousel({ games, systemName, color, index, onSelec
         key={g.id}
         className={`cv ${o === 0 ? 'center' : ''}`}
         style={style}
+        role="button"
+        aria-label={g.name}
         onClick={() => (o === 0 ? onActivate() : onSelect(index + o))}
       >
         <div className="cv-inner">

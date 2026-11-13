@@ -7,7 +7,7 @@ import { BIOS_RULES, type BiosRule } from '@shared/bios'
 import { resolveOverlay } from './overlays'
 import { findUpscalers } from './optimize'
 import { platform } from './platform'
-import { systemDir } from './paths'
+import { fwd, systemDir } from './paths'
 import { mt, numLocale } from './mt'
 
 const isDir = (p: string): boolean => {
@@ -31,7 +31,7 @@ export function biosStatus(s: Settings, rules: BiosRule[] = BIOS_RULES): Array<{
   const all = [s.biosDir, join(s.biosDir || '', 'dc'), join(s.biosDir || '', 'fbneo')]
   return rules.map((rule) => {
     // Flycast (Dreamcast, Naomi, Atomiswave) legge i BIOS solo da <bios>\dc: un file messo altrove non serve
-    const strict = rule.where === 'bios\\dc'
+    const strict = fwd(rule.where) === 'bios/dc'
     const dirs = strict ? [join(s.biosDir || '', 'dc')] : all
     let found: string | null = null
     let path = ''

@@ -90,7 +90,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .field label { display: block; font-family: var(--font); letter-spacing: 2px; color: var(--accent); margin-bottom: 6px; }
 .field-row { display: flex; gap: 10px; }
 .field input[type='text'], .field input:not([type]) { flex: 1; padding: 12px 14px; background: var(--panel); border: 2px solid rgba(255,255,255,.14); color: var(--text); font-size: 15px; user-select: text; }
-.field input:focus { outline: none; border-color: var(--accent); }
+.field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
 .check { display: flex; gap: 10px; align-items: center; cursor: pointer; }
 .big { align-self: flex-start; font-family: var(--font); font-size: 22px; letter-spacing: 3px; padding: 14px 54px; background: var(--accent); color: #000; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
 .big:hover { filter: brightness(1.15); }
@@ -243,7 +243,7 @@ kbd { font-family: var(--font); letter-spacing: 1px; min-width: 38px; text-align
 .list-inner { position: relative; width: 100%; }
 .list-inner .row { position: absolute; left: 0; right: 0; }
 .search { flex: 0 1 260px; padding: 10px 14px; background: var(--panel); border: 2px solid rgba(255,255,255,.14); color: var(--text); font: inherit; font-size: 14px; user-select: text; }
-.search:focus { outline: none; border-color: var(--accent); }
+.search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
 .scan { font-family: var(--font); letter-spacing: 2px; font-size: 13px; color: var(--accent); align-self: center; animation: blink 1.2s steps(2) infinite; }
 .light-fx .scan { animation: none; }
 
@@ -251,7 +251,7 @@ kbd { font-family: var(--font); letter-spacing: 1px; min-width: 38px; text-align
   clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%); animation: enter .25s; }
 
 .family { flex: 0 1 240px; padding: 10px 12px; font-size: 14px; max-width: none; }
-.family:focus { outline: none; border-color: var(--accent); }
+.family:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
 
 /* intestazione: tutto su una riga anche con filtro e ricerca */
 .topbar { gap: 16px; }
@@ -953,3 +953,7 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 :root[data-ui='comic'] .cov-text, :root[data-ui='comic'] .cov-date, :root[data-ui='comic'] .cov-pct { color: #3b362b; }
 :root[data-ui='comic'] .cov-bar { background: #fff; border-color: var(--ink); }
 :root[data-ui='comic'] .cov.complete .cov-bar i { background: #12a150; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}

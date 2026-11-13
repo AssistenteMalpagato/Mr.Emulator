@@ -1,5 +1,5 @@
 import { app } from 'electron'
-import { join, dirname } from 'path'
+import { join, dirname, basename, isAbsolute } from 'path'
 import { existsSync, readFileSync, mkdirSync, copyFileSync } from 'fs'
 import { writeFileAtomic } from './atomic'
 import type { Settings } from '@shared/types'
@@ -56,6 +56,7 @@ const DEFAULTS: Settings = {
   raPassword: '',
   raHardcore: false,
   cheatsAuto: false,
+  cheatsDir: '',
   hiscore: true,
   autoCovers: false,
   groupDiscs: true,
@@ -92,6 +93,45 @@ function readSettings(): Settings {
     }
   }
   return { ...DEFAULTS }
+}
+
+/** Impostazioni che contengono un percorso: vuote oppure assolute */
+const PATH_KEYS = ['romsDir', 'biosDir', 'retroarchPath', 'coresDir', 'mamePath', 'mameChdDir', 'mameRomDir', 'mediaDir', 'datDir', 'overlayPath', 'overlayDir', 'savesDir', 'cacheDir', 'consoleImagesPath', 'cheatsDir'] as const
+/** Gli unici due percorsi che il programma avvia: il nome del file deve essere quello di un emulatore */
+const EXE_KEYS = ['retroarchPath', 'mamePath'] as const
+const EXE_NAME = /retroarch|mame/i
+
+/**
+ * Controlla le impostazioni ricevute dalla finestra prima di salvarle: tipi giusti, percorsi assoluti, e per i due
+ * eseguibili un nome da emulatore (così non si può far avviare un programma qualsiasi). Un valore non valido
+ * lascia quello già salvato.
+ */
+export function sanitizeSettings(input: unknown, current: Settings): Settings {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return current
+  const src = input as Record<string, unknown>
+  const out: Record<string, unknown> = { ...src }
+  const cur = current as unknown as Record<string, unknown>
+  for (const key of Object.keys(DEFAULTS)) {
+    const def: unknown = (DEFAULTS as unknown as Record<string, unknown>)[key]
+    const v = src[key]
+    let ok = true
+    if (v === undefined) ok = false
+    else if (typeof def === 'string' || typeof def === 'boolean') ok = typeof v === typeof def
+    else if (typeof def === 'number') ok = typeof v === 'number' && Number.isFinite(v)
+    else if (Array.isArray(def)) ok = Array.isArray(v)
+    else if (def && typeof def === 'object') ok = !!v && typeof v === 'object' && !Array.isArray(v)
+    if (!ok) out[key] = cur[key]
+  }
+  for (const key of PATH_KEYS) {
+    const v = out[key]
+    if (typeof v !== 'string' || v === '' || v === cur[key]) continue
+    if (v.length > 1024 || v.includes('\0') || !isAbsolute(v)) out[key] = cur[key]
+  }
+  for (const key of EXE_KEYS) {
+    const v = out[key]
+    if (typeof v === 'string' && v !== '' && v !== cur[key] && !EXE_NAME.test(basename(v))) out[key] = cur[key]
+  }
+  return out as unknown as Settings
 }
 
 export function loadSettings(): Settings {

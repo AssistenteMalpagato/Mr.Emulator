@@ -47,7 +47,7 @@ export default function ResumeDialog({ game, systemName, color, time, onChoice }
 
   const title = splitTitle(game.name)
   return (
-    <div className="rd-back" style={{ ['--accent' as string]: color }} onClick={(e) => e.target === e.currentTarget && pick('cancel')}>
+    <div className="rd-back" role="dialog" aria-modal="true" aria-label={t('Riprendi la partita')} style={{ ['--accent' as string]: color }} onClick={(e) => e.target === e.currentTarget && pick('cancel')}>
       <div className="rd">
         <div className="rd-top">
           <span className="rd-ic">💾</span>

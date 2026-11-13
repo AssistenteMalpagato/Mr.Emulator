@@ -1,3 +1,4 @@
+import { isMachineName } from './machineName'
 import { spawn } from 'child_process'
 import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { dirname, join, parse } from 'path'
@@ -72,6 +73,7 @@ export function launchMame(
     return { ok: false, error: mt('MAME non trovato. Indica il percorso di mame.exe nelle impostazioni.') }
   }
   const machine = game.machine ?? parse(game.path).name
+  if (!isMachineName(machine)) return { ok: false, error: mt('Nome del gioco non valido per MAME: {name}', { name: machine }) }
   // game.path è già assoluto: la cartella dello ZIP può essere una sottocartella
   const base = systemDir(system, settings)
   // MAME cerca ogni ZIP nelle cartelle in questo ordine: prima i giochi, poi i CHD, infine la cartella BIOS

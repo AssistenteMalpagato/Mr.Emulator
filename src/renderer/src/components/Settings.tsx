@@ -8,7 +8,7 @@ import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
 import { getLang, numLocale, setLang, t } from '../i18n'
 
-type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath' | 'overlayDir' | 'savesDir' | 'cacheDir' | 'consoleImagesPath'
+type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath' | 'overlayDir' | 'savesDir' | 'cacheDir' | 'consoleImagesPath' | 'cheatsDir'
 
 interface Props {
   onClose: () => void
@@ -549,6 +549,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
             </label>
             <h3 className="sub-h">{t('Trucchi (cheat)')}</h3>
             <p className="hint">{t('Scarica il database dei trucchi di RetroArch (gratuito). Se c\'è un file per il gioco che avvii, i trucchi vengono caricati da soli e li attivi o disattivi dal menu di RetroArch (Menu rapido → Trucchi). Non funziona con la modalità hardcore.')}</p>
+            {field('Cartella dei trucchi (facoltativa)', 'Vuota = la cartella cheats accanto a quella delle ROM', 'cheatsDir', 'dir')}
             <label className="check">
               <input type="checkbox" checked={s.cheatsAuto} onChange={(e) => setS({ ...s, cheatsAuto: e.target.checked })} />
               {t('Carica da soli i trucchi del gioco, se ci sono')}
@@ -559,6 +560,8 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
                 onClick={async () => {
                   setCheatPct(0)
                   setCheatMsg(t('Scarico…'))
+                  // il download usa la cartella salvata: si salva prima, così vale quella appena scelta
+                  await window.mr.saveSettings(s)
                   const r = await window.mr.installCheats()
                   setCheatMsg(r.ok ? t('✔ {n} file di trucchi installati', { n: r.files.toLocaleString(getLang() === 'it' ? 'it' : 'en') }) : t('✘ {e}', { e: r.error ?? '' }))
                 }}

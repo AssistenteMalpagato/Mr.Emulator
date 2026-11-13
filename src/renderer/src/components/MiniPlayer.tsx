@@ -20,16 +20,16 @@ export default function MiniPlayer(): React.JSX.Element | null {
           ♪ {s.game} {t('· brano')} {s.index + 1} {t('di')} {s.count}
         </div>
       </div>
-      <button onClick={() => music.prev()} title={t('Brano precedente')}>
+      <button onClick={() => music.prev()} title={t('Brano precedente')} aria-label={t('Brano precedente')}>
         ⏮
       </button>
-      <button onClick={() => music.toggle()} title={t('Pausa / riprendi')}>
+      <button onClick={() => music.toggle()} title={t('Pausa / riprendi')} aria-label={t('Pausa / riprendi')}>
         {s.playing ? '⏸' : '▶'}
       </button>
-      <button onClick={() => music.next()} title={t('Brano successivo')}>
+      <button onClick={() => music.next()} title={t('Brano successivo')} aria-label={t('Brano successivo')}>
         ⏭
       </button>
-      <button onClick={() => music.stop()} title={t('Ferma')}>
+      <button onClick={() => music.stop()} title={t('Ferma')} aria-label={t('Ferma')}>
         ✕
       </button>
     </div>

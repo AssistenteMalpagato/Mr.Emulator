@@ -6,6 +6,7 @@ import { dirname, join, parse, resolve, sep } from 'path'
 import { rmSync } from 'fs'
 import type { Game, Settings, SystemDef } from '@shared/types'
 import { writeFileAtomic } from './atomic'
+import { fwd } from './paths'
 import { mt } from './mt'
 import { makeMatcher } from './thumbIndex'
 import { openZip, readZipEntry } from './zipinfo'
@@ -13,10 +14,9 @@ import { openZip, readZipEntry } from './zipinfo'
 /** Archivio dei trucchi del database di libretro */
 export const CHEATS_URL = 'https://buildbot.libretro.com/assets/frontend/cheats.zip'
 
-const fwd = (p: string): string => p.replace(/\\/g, '/')
 
-/** Cartella dei trucchi: accanto alla cartella delle ROM (come i salvataggi, sullo stesso disco) */
-export const cheatsDirOf = (s: Settings): string => (s.romsDir ? join(dirname(s.romsDir), 'cheats') : '')
+/** Cartella dei trucchi: quella scelta dall'utente, altrimenti accanto alla cartella delle ROM (come i salvataggi, sullo stesso disco) */
+export const cheatsDirOf = (s: Settings): string => s.cheatsDir?.trim() || (s.romsDir ? join(dirname(s.romsDir), 'cheats') : '')
 
 /** RetroAchievements: accesso e modalità. Senza utente e password non si attiva (RetroArch si limiterebbe a chiedere l'accesso) */
 export function achievementsConfig(s: Settings): Record<string, string> {

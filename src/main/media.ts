@@ -21,7 +21,7 @@ const FOLDERS: Record<MediaKind, string[]> = {
 }
 /** Cartelle dei filmati e della musica (non sono immagini: si cercano a parte) */
 const EXTRA_FOLDERS: Record<'video' | 'sound', string[]> = {
-  video: ['videosnaps', 'videosnap', 'videos', 'video'],
+  video: ['videosnaps', 'videosnap', 'videos', 'video', 'videosnaps_sl'],
   sound: ['soundtrack', 'soundtracks', 'music', 'ost']
 }
 const VIDEO_EXT = ['.mp4', '.webm', '.m4v']
@@ -153,6 +153,12 @@ export class MediaSource {
       }
     }
     return null
+  }
+
+  /** Cartella dei filmati delle console (videosnaps_SL, una sottocartella per Software List), se c'è */
+  async softVideoDir(): Promise<string | null> {
+    const d = await this.detect()
+    return d.sources.find((s) => s.kind === 'video' && s.type === 'dir' && /_sl$/i.test(s.name))?.path ?? null
   }
 
   /** Brani della colonna sonora (soundtrack/nome/01 Titolo.mp3), in ordine di numero */

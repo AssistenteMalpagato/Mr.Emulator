@@ -170,6 +170,7 @@ const MAKERS: Array<[RegExp, string]> = [
  */
 export function familyOf(m: MameMachine, machines: Map<string, MameMachine>, depth = 0): string {
   if (m.driver === 'neogeo.cpp') return 'Neo Geo'
+  if (m.driver === 'naomi.cpp') return 'Naomi / Atomiswave'
   if (CPS.has(m.driver)) return 'Capcom CPS'
   for (const [re, label] of MAKERS) if (re.test(m.manufacturer)) return label
   const parent = m.cloneof && depth < 3 ? machines.get(m.cloneof) : undefined

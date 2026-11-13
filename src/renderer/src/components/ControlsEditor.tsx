@@ -122,7 +122,7 @@ export default function ControlsEditor({ start, presets, onSave, onCancel }: Pro
   const missing = ACTIONS.filter((a) => empty(pc[a.id])).length
 
   return (
-    <div className="ce-back" onClick={(e) => e.target === e.currentTarget && !listening && onCancel()}>
+    <div className="ce-back" role="dialog" aria-modal="true" aria-label={t('Assegna i pulsanti')} onClick={(e) => e.target === e.currentTarget && !listening && onCancel()}>
       <div className="ce">
         <h3>{t('Assegna i pulsanti')}</h3>
         <p className="hint">

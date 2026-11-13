@@ -83,3 +83,11 @@ test('download dei trucchi: estrae nella cartella, tiene il file temporaneo acca
   assert.ok(!existsSync(join(dest, '.cheats-download.zip')))
   assert.equal(seen[seen.length - 1], 100)
 })
+
+test('cartella dei trucchi: quella scelta, altrimenti accanto alle ROM', async () => {
+  const { cheatsDirOf } = await import('../src/main/extras')
+  const s = { romsDir: join(tmpdir(), 'giochi', 'roms'), cheatsDir: '' } as Settings
+  assert.equal(cheatsDirOf(s), join(tmpdir(), 'giochi', 'cheats'))
+  assert.equal(cheatsDirOf({ ...s, cheatsDir: '  ' }), join(tmpdir(), 'giochi', 'cheats'))
+  assert.equal(cheatsDirOf({ ...s, cheatsDir: join(tmpdir(), 'mia') }), join(tmpdir(), 'mia'))
+})

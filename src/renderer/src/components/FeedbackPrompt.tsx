@@ -45,7 +45,7 @@ export default function FeedbackPrompt({ ended, onAnswer, onSkip }: Props): Reac
   )
 
   return (
-    <div className="modal">
+    <div className="modal" role="dialog" aria-modal="true" aria-label={t('COM\'È ANDATA?')}>
       <div className="modal-box">
         <div className="modal-title">{t('COM\'È ANDATA?')}</div>
         <div className="modal-sub">

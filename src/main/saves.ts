@@ -5,6 +5,7 @@ import { writeFileAtomic } from './atomic'
 import { defaultRoot } from './folders'
 import { readZipEntry } from './zipinfo'
 import { createZip, listZip } from './zipwrite'
+import { fwd } from './paths'
 import { mt } from './mt'
 
 /** Sistemi "arcade" di RetroArch (FBNeo): la scelta di riprendere si fa nell'anteprima, non all'avvio */
@@ -18,7 +19,6 @@ export function savesRoot(s: Settings): string {
   return join(s.romsDir ? dirname(s.romsDir) : defaultRoot(), 'saves')
 }
 
-const fwd = (p: string): string => p.replace(/\\/g, '/')
 const contentName = (game: Game): string => parse(game.path).name
 const machineOf = (game: Game): string => game.machine ?? contentName(game)
 

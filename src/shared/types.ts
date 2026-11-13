@@ -221,6 +221,8 @@ export interface Settings {
   raHardcore: boolean
   /** Trucchi (cheat): applica da solo quelli del database di RetroArch, se ce n'è uno per il gioco */
   cheatsAuto: boolean
+  /** Cartella dei trucchi scelta dall'utente; vuota = la cartella "cheats" accanto a quella delle ROM */
+  cheatsDir: string
   /** Arcade: per ogni gioco, se riprendere la partita (id del gioco -> sì/no) */
   resumeArcade: Record<string, boolean>
   /** MAME: salva i punteggi record dei giochi arcade (plugin hiscore) */
