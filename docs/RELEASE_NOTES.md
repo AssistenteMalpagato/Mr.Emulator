@@ -1,3 +1,16 @@
+## Mr. Emulator 0.2.18
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🎬 **Video previews for consoles**: the `videosnaps_SL` folder of the MAME multimedia pack is now used (NES, PC Engine / TurboGrafx-16, ColecoVision, SG-1000, Neo Geo Pocket, Mega Drive, Jaguar, PlayStation). The video is found from the file name or from the game title; ambiguous matches are skipped rather than guessed.
+- 🧰 **Cheats folder**: you can now choose where the cheats database is downloaded and read from (Settings → Trophies and cheats).
+- 🎮 **Gamepad at startup**: the window takes focus when it loads and the pad state is reset when a pad is plugged in, so the pad no longer needs to be unplugged and replugged.
+- 🕹️ **Sega Naomi**: an archive that contains a whole GD-ROM disc (`.cue`/`.gdi`) is now reported clearly instead of failing with “Unknown game”; `.7z` files are read with the Windows `tar` even when another `tar` comes first in the PATH. MAME machines of the `naomi.cpp` driver have their own *Naomi / Atomiswave* filter.
+- 🔒 **Security**: MAME game names are validated before they reach `mame.exe` (a file called `-option.zip` can no longer become an option); the window blocks new windows, outside navigation and permissions (except the clipboard); the settings sent by the window are checked before saving (types, absolute paths, and the RetroArch/MAME programs must have an emulator name); a network error in the update check is no longer remembered for a day.
+- ♿ **Accessibility**: dialogs are declared as dialogs, icon-only buttons have an accessible name, the keyboard focus is more visible, animations follow “reduce motion”, and the page language follows the language chosen in the app.
+- 🧹 Cleanup: one shared path helper, and the BIOS folder check no longer depends on the path separator.
+
 ## Mr. Emulator 0.2.17
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
